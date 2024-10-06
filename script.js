@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Function to place players on the field
-    function placePlayers(team) {
-        team.players.forEach((player, index) => {
+    function placePlayers(team, teamNumber) {
+        team.players.slice(0, 11).forEach((player, index) => {
             const playerDiv = document.createElement('div');
             playerDiv.className = 'player';
             playerDiv.style.backgroundColor = team.primaryColor;
@@ -27,11 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
             playerDiv.dataset.velocityX = (Math.random() - 0.5) * 2; // Random velocity
             playerDiv.dataset.velocityY = (Math.random() - 0.5) * 2; // Random velocity
             playerDiv.dataset.name = player.name;
+            playerDiv.dataset.team = teamNumber;
             playerDiv.title = `${player.name} (${player.position})`;
             field.appendChild(playerDiv);
-
-            // Add click event to shoot the ball
-            playerDiv.addEventListener('click', () => shootBall(playerDiv));
         });
     }
 
@@ -66,45 +64,68 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(updatePlayerPositions);
     }
 
-    // Function to shoot the ball towards the goal
-    function shootBall(playerDiv) {
+    // Function to pass the ball to a random player on the same team
+    function passBall() {
+        const players = document.querySelectorAll('.player');
         const ballX = parseFloat(ball.style.left);
         const ballY = parseFloat(ball.style.top);
-        const playerX = parseFloat(playerDiv.style.left);
-        const playerY = parseFloat(playerDiv.style.top);
 
-        const deltaX = playerX - ballX;
-        const deltaY = playerY - ballY;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const speed = 5; // Adjust speed as needed
-        const steps = distance / speed;
-        let step = 0;
+        // Find the closest player to pass the ball to
+        let closestPlayer = null;
+        let minDistance = Infinity;
 
-        function move() {
-            if (step < steps) {
-                ball.style.left = `${ballX + (deltaX / steps) * step}px`;
-                ball.style.top = `${ballY + (deltaY / steps) * step}px`;
-                step++;
-                requestAnimationFrame(move);
-            } else {
-                ball.style.left = `${playerX}px`;
-                ball.style.top = `${playerY}px`;
-                checkGoal(playerX, playerY);
+        players.forEach(player => {
+            const playerX = parseFloat(player.style.left);
+            const playerY = parseFloat(player.style.top);
+            const distance = Math.sqrt((playerX - ballX) ** 2 + (playerY - ballY) ** 2);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPlayer = player;
             }
-        }
+        });
 
-        move();
+        if (closestPlayer) {
+            const playerX = parseFloat(closestPlayer.style.left);
+            const playerY = parseFloat(closestPlayer.style.top);
+
+            const deltaX = playerX - ballX;
+            const deltaY = playerY - ballY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const speed = 5; // Adjust speed as needed
+            const steps = distance / speed;
+            let step = 0;
+
+            function move() {
+                if (step < steps) {
+                    ball.style.left = `${ballX + (deltaX / steps) * step}px`;
+                    ball.style.top = `${ballY + (deltaY / steps) * step}px`;
+                    step++;
+                    requestAnimationFrame(move);
+                } else {
+                    ball.style.left = `${playerX}px`;
+                    ball.style.top = `${playerY}px`;
+                    checkGoal(playerX, playerY, closestPlayer.dataset.team);
+                }
+            }
+
+            move();
+        }
     }
 
     // Function to check if a goal is scored
-    function checkGoal(x, y) {
-        const goalX = 580; // Example goal position
+    function checkGoal(x, y, team) {
+        const goalX = team === '1' ? 580 : 0; // Example goal positions
         const goalY = 200; // Example goal position
         const goalWidth = 20;
         const goalHeight = 100;
 
         if (x >= goalX && x <= goalX + goalWidth && y >= goalY && y <= goalY + goalHeight) {
-            score.team1++; // Update score for team 1
+            if (team === '1') {
+                score.team1++;
+            } else {
+                score.team2++;
+            }
             updateScoreboard();
         }
     }
@@ -118,14 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTeams() {
         const team1 = await fetchTeamData('brackenford_united.json');
         const team2 = await fetchTeamData('elderglen_fc.json');
-        placePlayers(team1);
-        placePlayers(team2);
+        placePlayers(team1, 1);
+        placePlayers(team2, 2);
     }
 
     // Start the ball movement and player updates
     setInterval(moveBall, 1000);
     requestAnimationFrame(updatePlayerPositions);
 
-    // Load the teams
-    loadTeams();
+    // Load the teams and start passing the ball
+    loadTeams().then(() => {
+        setInterval(passBall, 2000); // Pass the ball every 2 seconds
+    });
 });
