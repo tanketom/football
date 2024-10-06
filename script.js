@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let awayScore = 0;
     let currentMinute = 0;
     let gameInterval;
+    let homeTeam, awayTeam;
 
-    const teamFiles = ['JSON/brackenford_united.json', 'JSON/elderglen_fc.json'];
+    const teamFiles = ['teams/brackenford_united.json', 'teams/elderglen_fc.json'];
 
     const formations = {
         "4-4-2": {
@@ -125,13 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event listener for team selection
     teamSelect1.addEventListener('change', () => {
-        const selectedTeam = teams.find(team => team.teamName === teamSelect1.value);
-        displayTeamFormation(selectedTeam, 'field');
+        homeTeam = teams.find(team => team.teamName === teamSelect1.value);
+        displayTeamFormation(homeTeam, 'field');
     });
 
     teamSelect2.addEventListener('change', () => {
-        const selectedTeam = teams.find(team => team.teamName === teamSelect2.value);
-        displayTeamFormation(selectedTeam, 'field');
+        awayTeam = teams.find(team => team.teamName === teamSelect2.value);
+        displayTeamFormation(awayTeam, 'field');
     });
 
     // Simulate a football game
@@ -157,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ticker.innerHTML += `<p>${currentMinute}': Ball is at (${ballPosition.row}, ${ballPosition.col})</p>`;
 
         // Simulate a duel and move the ball
-        const duelResult = Math.random() > 0.5 ? 'home' : 'away';
+        const duelResult = simulateDuel();
         if (duelResult === 'home') {
             moveBallTowardsGoal('home');
         } else {
@@ -166,16 +167,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Check for goal
         if (ballPosition.col === 0 || ballPosition.col === 4) {
-            if (ballPosition.col === 0) {
-                homeScore++;
-                ticker.innerHTML += `<p>Goal for Home Team! Score: ${homeScore} - ${awayScore}</p>`;
+            const scoringTeam = ballPosition.col === 0 ? 'home' : 'away';
+            const goalkeeper = scoringTeam === 'home' ? getPlayerInCell(awayTeam, { row: 2, col: 0 }) : getPlayerInCell(homeTeam, { row: 2, col: 4 });
+            const goalScored = attemptGoal(goalkeeper);
+
+            if (goalScored) {
+                if (scoringTeam === 'home') {
+                    homeScore++;
+                    ticker.innerHTML += `<p>Goal for ${homeTeam.teamName}! Score: ${homeScore} - ${awayScore}</p>`;
+                } else {
+                    awayScore++;
+                    ticker.innerHTML += `<p>Goal for ${awayTeam.teamName}! Score: ${homeScore} - ${awayScore}</p>`;
+                }
+                updateScoreboard();
+                ballPosition = { row: 2, col: 2 };
             } else {
-                awayScore++;
-                ticker.innerHTML += `<p>Goal for Away Team! Score: ${homeScore} - ${awayScore}</p>`;
+                ticker.innerHTML += `<p>Great save by the goalkeeper!</p>`;
             }
-            updateScoreboard();
-            ballPosition = { row: 2, col: 2 };
         }
+    }
+
+    // Simulate a duel based on player attributes
+    function simulateDuel() {
+        const homePlayer = getPlayerInCell(homeTeam, ballPosition);
+        const awayPlayer = getPlayerInCell(awayTeam, ballPosition);
+
+        const homeScore = calculatePlayerScore(homePlayer);
+        const awayScore = calculatePlayerScore(awayPlayer);
+
+        ticker.innerHTML += `<p>${homePlayer.name} (Home) vs ${awayPlayer.name} (Away)</p>`;
+
+        return homeScore > awayScore ? 'home' : 'away';
+    }
+
+    // Get player in the current cell
+    function getPlayerInCell(team, position) {
+        return team.players[Math.floor(Math.random() * team.players.length)];
+    }
+
+    // Calculate player score based on attributes
+    function calculatePlayerScore(player) {
+        return player.strength + player.dexterity + player.intelligence;
+    }
+
+    // Attempt to score a goal considering the goalkeeper's attributes
+    function attemptGoal(goalkeeper) {
+        const goalkeeperScore = calculatePlayerScore(goalkeeper);
+        const goalChance = Math.random() * 100;
+        return goalChance > goalkeeperScore;
     }
 
     // Move the ball towards the goal
@@ -193,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ballPosition.row = Math.min(4, ballPosition.row + 1);
             }
         }
+        ticker.innerHTML += `<p>${team === 'home' ? homeTeam.teamName : awayTeam.teamName} moves the ball to (${ballPosition.row}, ${ballPosition.col})</p>`;
     }
 
     // Update the scoreboard
