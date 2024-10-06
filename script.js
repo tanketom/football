@@ -64,6 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
             "The game continues with intense action on the field.",
             "Both teams are fighting hard for control of the ball.",
             "It's a tense match with both sides showing great skill."
+        ],
+        advance: [
+            "{player} is advancing up the field, and dribbles past {opponent} up the left wing!",
+            "{player} moves forward with the ball, evading {opponent}!",
+            "{player} from {team} makes a run up the pitch, leaving {opponent} behind!"
+        ],
+        intercept: [
+            "{opponent} intercepts {player} and grabs possession of the ball for {team}.",
+            "{opponent} from {team} cuts off {player}'s advance and takes the ball.",
+            "{opponent} steals the ball from {player}, turning the play around for {team}."
         ]
     };
 
@@ -148,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Simulate game events
         const event = Math.random();
-        if (event < 0.1) {
+        if (event < 0.2) {
             // Goal event
             if (attemptGoal()) {
                 const scoringTeam = ballPossession;
@@ -159,12 +169,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 addCommentary(`<b>${getRandomPhrase('goal', { player: scorer.name, team: teams[scoringTeam].teamName, score: `${score.team1} - ${score.team2}` })}</b>`);
                 resetBallPosition();
             }
-        } else if (event < 0.2) {
+        } else if (event < 0.4) {
             // Foul event
             const player1 = getRandomPlayer('team1');
             const player2 = getRandomPlayer('team2');
             handleFoul(player1, player2);
-        } else if (event < 0.3) {
+        } else if (event < 0.5) {
             // Substitution event
             const team = Math.random() < 0.5 ? 'team1' : 'team2';
             if (substitutions[team] < 3) {
@@ -172,32 +182,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 const playerIn = getRandomPlayer(team, false, true);
                 handleSubstitution(team, playerOut, playerIn);
             }
-        } else if (event < 0.5) {
+        } else {
             // Regular game event
             handleBallMovement();
-        } else if (event < 0.7) {
-            // Tackle event
-            const player1 = getRandomPlayer('team1');
-            const player2 = getRandomPlayer('team2');
-            addCommentary(getRandomPhrase('tackle', { player1: player1.name, player2: player2.nickname, team1: team1.teamName }));
-        } else {
-            // General event
-            addCommentary(getRandomPhrase('general', {}));
         }
     }
 
     function handleBallMovement() {
         const direction = Math.random();
+        const player = getRandomPlayer(ballPossession);
+        const opponent = getRandomPlayer(ballPossession === 'team1' ? 'team2' : 'team1');
+        player.constitution -= 1; // Decrease constitution for active player
+
+        if (player.constitution <= 0 && substitutions[ballPossession] < 3) {
+            const playerIn = getRandomPlayer(ballPossession, false, true);
+            handleSubstitution(ballPossession, player, playerIn);
+        }
+
         if (direction < 0.25 && ballPosition.y > 0) {
             ballPosition.y--; // Move up
+            addCommentary(getRandomPhrase('advance', { player: player.name, opponent: opponent.name, team: teams[ballPossession].nickname }));
         } else if (direction < 0.5 && ballPosition.y < 4) {
             ballPosition.y++; // Move down
+            addCommentary(getRandomPhrase('advance', { player: player.name, opponent: opponent.name, team: teams[ballPossession].nickname }));
         } else if (direction < 0.75 && ballPosition.x > 0) {
             ballPosition.x--; // Move left
+            addCommentary(getRandomPhrase('advance', { player: player.name, opponent: opponent.name, team: teams[ballPossession].nickname }));
         } else if (ballPosition.x < 4) {
             ballPosition.x++; // Move right
+            addCommentary(getRandomPhrase('advance', { player: player.name, opponent: opponent.name, team: teams[ballPossession].nickname }));
+        } else {
+            // Interception by opponent
+            ballPossession = ballPossession === 'team1' ? 'team2' : 'team1';
+            addCommentary(getRandomPhrase('intercept', { player: player.name, opponent: opponent.name, team: teams[ballPossession].nickname }));
         }
-        addCommentary(`The ball is now at position (${ballPosition.x}, ${ballPosition.y}).`);
     }
 
     function attemptGoal() {
