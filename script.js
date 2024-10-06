@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Math.random() < 0.03) { // 3% chance to score
                 team1Score++;
                 updateScoreboard(team1, team2);
+                announceGoal(player1, team1);
                 return `${player1.name} from ${team1.teamName} scores a goal from the ${fieldSide}!`;
             }
             return `${player1.name} from ${team1.teamName} outmaneuvers ${player2.name} from ${team2.teamName} on the ${fieldSide} and advances the ball!`;
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Math.random() < 0.03) { // 3% chance to score
                 team2Score++;
                 updateScoreboard(team1, team2);
+                announceGoal(player2, team2);
                 return `${player2.name} from ${team2.teamName} scores a goal from the ${fieldSide}!`;
             }
             return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName} on the ${fieldSide}!`;
@@ -228,5 +230,46 @@ document.addEventListener('DOMContentLoaded', () => {
             player.style.left = `${Math.random() * 570 + 15}px`;
             player.style.top = `${Math.random() * 370 + 15}px`;
         });
+    }
+
+    function announceGoal(player, team) {
+        const goalAnnouncement = document.createElement('p');
+        goalAnnouncement.innerHTML = `<strong>Goal by ${player.name} from ${team.teamName}!</strong>`;
+        ticker.appendChild(goalAnnouncement);
+        ticker.scrollTop = ticker.scrollHeight;
+
+        // Pause for 3 seconds
+        clearInterval(gameInterval);
+        setTimeout(() => {
+            gameInterval = setInterval(() => {
+                if (currentMinute >= 90) {
+                    clearInterval(gameInterval);
+                    return;
+                }
+                currentMinute++;
+                const decision = makeDecision(team1, team2);
+                updateTicker(decision);
+                updateClock();
+                updateField(team1, team2);
+            }, 1000);
+        }, 3000);
+
+        // Flash scoreboard
+        const scoreboard = document.getElementById('scoreboard');
+        scoreboard.classList.add('flash');
+        setTimeout(() => {
+            scoreboard.classList.remove('flash');
+        }, 1000);
+
+        // Add goal scorer under scoreboard
+        const goalScorers = document.getElementById('goalScorers');
+        if (!goalScorers) {
+            const goalScorersDiv = document.createElement('div');
+            goalScorersDiv.id = 'goalScorers';
+            document.body.insertBefore(goalScorersDiv, ticker);
+        }
+        const scorer = document.createElement('p');
+        scorer.textContent = `${player.name} (${team.teamName})`;
+        goalScorers.appendChild(scorer);
     }
 });

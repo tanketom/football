@@ -52,3 +52,12 @@ body {
     background-color: white;
     border-radius: 50%;
 }
+
+.flash {
+    animation: flash 1s;
+}
+
+@keyframes flash {
+    0% { background-color: yellow; }
+    100% { background-color: transparent; }
+}
