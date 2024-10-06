@@ -1,292 +1,254 @@
-// script.js
 document.addEventListener('DOMContentLoaded', () => {
     const team1Select = document.getElementById('team1');
     const team2Select = document.getElementById('team2');
     const startButton = document.getElementById('startButton');
-    const ticker = document.getElementById('ticker');
+    const scoreboard = document.getElementById('scoreboard');
     const clock = document.getElementById('clock');
     const field = document.getElementById('field');
+    const goalScorers = document.getElementById('goalScorers');
+    const ticker = document.getElementById('ticker');
 
-    const teams = {};
-    let team1Score = 0;
-    let team2Score = 0;
-    let currentMinute = 0;
+    let teams = {};
     let gameInterval;
+    let gameTime = 0;
+    let team1, team2;
+    let score = { team1: 0, team2: 0 };
+    let substitutions = { team1: 0, team2: 0 };
+    let yellowCards = {};
+    let redCards = {};
 
-    // Populate team selects with team names
-    const teamNames = ['Brackenford United', 'Elderglen FC']; // Add more team names as needed
-    teamNames.forEach(teamName => {
-        const option1 = document.createElement('option');
-        option1.value = teamName;
-        option1.textContent = teamName;
-        team1Select.appendChild(option1);
+    const commentaryPhrases = {
+        start: [
+            "The referee blows the whistle and starts the game between {team1} and {team2}.",
+            "Kick-off! {team1} faces {team2} in today's match.",
+            "The game begins! {team1} vs {team2}."
+        ],
+        goal: [
+            "{player} from {team} scores! The score is now {score}.",
+            "What a goal by {player} of {team}! The scoreboard reads {score}.",
+            "Goal! {player} nets one for {team}. It's now {score}."
+        ],
+        pass: [
+            "{player1} from {team1} passes to {player2}.",
+            "{player1} makes a swift pass to {player2}.",
+            "A beautiful pass from {player1} to {player2}."
+        ],
+        tackle: [
+            "A dangerous tackle there from {player1}, taking down {player2}.",
+            "{player1} makes a strong tackle on {player2}.",
+            "{player1} from {team1} stops {player2} with a solid tackle."
+        ],
+        foul: [
+            "{player1} commits a foul on {player2}. The referee is not happy.",
+            "A foul by {player1} on {player2}. The referee gives a warning.",
+            "{player1} from {team1} fouls {player2}. The game is paused."
+        ],
+        substitution: [
+            "{playerOut} is substituted by {playerIn} for {team}.",
+            "{team} makes a substitution: {playerOut} out, {playerIn} in.",
+            "Substitution for {team}: {playerOut} is replaced by {playerIn}."
+        ],
+        redCard: [
+            "{player} from {team} receives a red card and is sent off!",
+            "The referee shows a red card to {player} of {team}.",
+            "{player} from {team} is sent off with a red card!"
+        ],
+        yellowCard: [
+            "{player} from {team} receives a yellow card.",
+            "The referee shows a yellow card to {player} of {team}.",
+            "{player} from {team} is booked with a yellow card."
+        ],
+        general: [
+            "The game continues with intense action on the field.",
+            "Both teams are fighting hard for control of the ball.",
+            "It's a tense match with both sides showing great skill."
+        ]
+    };
 
-        const option2 = document.createElement('option');
-        option2.value = teamName;
-        option2.textContent = teamName;
-        team2Select.appendChild(option2);
-    });
+    function getRandomPhrase(type, replacements) {
+        const phrases = commentaryPhrases[type];
+        let phrase = phrases[Math.floor(Math.random() * phrases.length)];
+        for (const key in replacements) {
+            phrase = phrase.replace(`{${key}}`, replacements[key]);
+        }
+        return phrase;
+    }
 
-    startButton.addEventListener('click', () => {
-        const team1Name = team1Select.value;
-        const team2Name = team2Select.value;
+    // Load all team data from the JSON folder
+    fetchTeams();
 
-        if (team1Name === team2Name) {
-            alert('Please select two different teams.');
+    function fetchTeams() {
+        fetch('JSON/')
+            .then(response => response.json())
+            .then(files => {
+                files.forEach(file => {
+                    fetch(`JSON/${file}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            teams[data.teamName] = data;
+                            populateTeamSelect(team1Select, data.teamName);
+                            populateTeamSelect(team2Select, data.teamName);
+                        });
+                });
+            });
+    }
+
+    function populateTeamSelect(selectElement, teamName) {
+        const option = document.createElement('option');
+        option.value = teamName;
+        option.textContent = teamName;
+        selectElement.appendChild(option);
+    }
+
+    startButton.addEventListener('click', startGame);
+
+    function startGame() {
+        team1 = teams[team1Select.value];
+        team2 = teams[team2Select.value];
+        if (!team1 || !team2) {
+            alert('Please select both teams.');
             return;
         }
 
-        loadTeam(team1Name, team1 => {
-            loadTeam(team2Name, team2 => {
-                displayTeamDetails(team1, team2);
-                startGame(team1, team2);
-            });
-        });
-    });
-
-    function loadTeam(teamName, callback) {
-        fetch(`JSON/${teamName.toLowerCase().replace(/ /g, '_')}.json`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                teams[teamName] = data;
-                callback(data);
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
+        resetGame();
+        addCommentary(getRandomPhrase('start', { team1: team1.teamName, team2: team2.teamName }));
+        gameInterval = setInterval(simulateMinute, 1000);
     }
 
-    function displayTeamDetails(team1, team2) {
-        const existingDetails = document.querySelectorAll('body > div:not(#ticker):not(#goalScorers):not(#field):not(#scoreboard-section):not(#controls):not(#field-section):not(#goalScorers-section):not(#ticker-section)');
-        existingDetails.forEach(detail => detail.remove());
-
-        const team1Details = document.createElement('div');
-        team1Details.innerHTML = `<h2>${team1.teamName}</h2><p>Manager: ${team1.manager}</p><p>${team1.history}</p>`;
-        document.body.insertBefore(team1Details, document.getElementById('ticker-section'));
-
-        const team2Details = document.createElement('div');
-        team2Details.innerHTML = `<h2>${team2.teamName}</h2><p>Manager: ${team2.manager}</p><p>${team2.history}</p>`;
-        document.body.insertBefore(team2Details, document.getElementById('ticker-section'));
-    }
-
-    function startGame(team1, team2) {
+    function resetGame() {
+        gameTime = 0;
+        score = { team1: 0, team2: 0 };
+        substitutions = { team1: 0, team2: 0 };
+        yellowCards = {};
+        redCards = {};
+        scoreboard.textContent = '0 - 0';
+        clock.textContent = '00:00';
+        goalScorers.innerHTML = '';
         ticker.innerHTML = '';
-        team1Score = 0;
-        team2Score = 0;
-        currentMinute = 0;
-        updateScoreboard(team1, team2);
-        updateClock();
-        initializeField(team1, team2);
-
-        gameInterval = setInterval(() => {
-            if (currentMinute >= 90) {
-                clearInterval(gameInterval);
-                return;
-            }
-            currentMinute++;
-            const decision = makeDecision(team1, team2);
-            updateTicker(decision);
-            updateClock();
-            updateField(team1, team2);
-        }, 1000); // Update every second for real-time simulation
+        field.innerHTML = '';
     }
 
-    function makeDecision(team1, team2) {
-        const diceRoll = Math.floor(Math.random() * 6) + 1;
-        const player1 = team1.players[Math.floor(Math.random() * team1.players.length)];
-        const player2 = team2.players[Math.floor(Math.random() * team2.players.length)];
-        
-                // Simulate a duel based on player stats and dice roll
-                const duelResult = simulateDuel(player1, player2, diceRoll, team1, team2);
-                return `Minute ${currentMinute}: ${duelResult}`;
+    function simulateMinute() {
+        gameTime++;
+        clock.textContent = formatTime(gameTime);
+
+        if (gameTime > 90) {
+            clearInterval(gameInterval);
+            addCommentary('The referee blows the final whistle. The game is over.');
+            return;
+        }
+
+        // Simulate game events
+        const event = Math.random();
+        if (event < 0.1) {
+            // Goal event
+            const scoringTeam = Math.random() < 0.5 ? 'team1' : 'team2';
+            const scorer = getRandomPlayer(scoringTeam);
+            score[scoringTeam]++;
+            updateScoreboard();
+            addGoalScorer(scorer);
+            addCommentary(`<b>${getRandomPhrase('goal', { player: scorer.name, team: teams[scoringTeam].teamName, score: `${score.team1} - ${score.team2}` })}</b>`);
+        } else if (event < 0.2) {
+            // Foul event
+            const player1 = getRandomPlayer('team1');
+            const player2 = getRandomPlayer('team2');
+            handleFoul(player1, player2);
+        } else if (event < 0.3) {
+            // Substitution event
+            const team = Math.random() < 0.5 ? 'team1' : 'team2';
+            if (substitutions[team] < 3) {
+                const playerOut = getRandomPlayer(team, true);
+                const playerIn = getRandomPlayer(team, false, true);
+                handleSubstitution(team, playerOut, playerIn);
             }
-        
-            function simulateDuel(player1, player2, diceRoll, team1, team2) {
-                const player1Score = player1.strength + player1.dexterity + diceRoll;
-                const player2Score = player2.strength + player2.dexterity + diceRoll;
-                const fieldSides = ['left wing', 'right wing', 'center field', 'defensive third', 'attacking third'];
-                const fieldSide = fieldSides[Math.floor(Math.random() * fieldSides.length)];
-                const actions = [
-                    'dribbles past',
-                    'outmaneuvers',
-                    'dodges',
-                    'bypasses',
-                    'evades',
-                    'sidesteps',
-                    'outplays'
-                ];
-                const action = actions[Math.floor(Math.random() * actions.length)];
-        
-                if (player1Score > player2Score) {
-                    if (Math.random() < 0.03) { // 3% chance to score
-                        team1Score++;
-                        updateScoreboard(team1, team2);
-                        announceGoal(player1, team1, team2);
-                        return `${player1.name} from ${team1.teamName} scores a goal from the ${fieldSide}!`;
-                    }
-                    return `${player1.name} from ${team1.teamName} ${action} ${player2.name} from ${team2.teamName} on the ${fieldSide} and advances the ball!`;
-                } else {
-                    if (Math.random() < 0.03) { // 3% chance to score
-                        team2Score++;
-                        updateScoreboard(team1, team2);
-                        announceGoal(player2, team2, team1);
-                        return `${player2.name} from ${team2.teamName} scores a goal from the ${fieldSide}!`;
-                    }
-                    return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName} on the ${fieldSide}!`;
-                }
-            }
-        
-            function updateTicker(decision) {
-                const p = document.createElement('p');
-                p.textContent = decision;
-                ticker.appendChild(p);
-                ticker.scrollTop = ticker.scrollHeight;
-            }
-        
-            function updateScoreboard(team1, team2) {
-                let scoreboard = document.getElementById('scoreboard');
-                if (!scoreboard) {
-                    scoreboard = document.createElement('div');
-                    scoreboard.id = 'scoreboard';
-                    scoreboard.style.fontSize = '24px';
-                    scoreboard.style.marginBottom = '20px';
-                    document.body.insertBefore(scoreboard, document.body.firstChild);
-                }
-                scoreboard.textContent = `${team1.teamName} ${team1Score} - ${team2Score} ${team2.teamName}`;
-            }
-        
-            function updateClock() {
-                const minutes = Math.floor(currentMinute / 60);
-                const seconds = currentMinute % 60;
-                clock.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-        
-            function initializeField(team1, team2) {
-                field.innerHTML = '';
-                const fieldElement = document.createElement('div');
-                fieldElement.id = 'fieldElement';
-                fieldElement.style.position = 'relative';
-                fieldElement.style.width = '600px';
-                fieldElement.style.height = '400px';
-                fieldElement.style.backgroundColor = 'green';
-                fieldElement.style.margin = '0 auto';
-                fieldElement.style.border = '1px solid black';
-        
-                // Add players
-                team1.players.forEach((player, index) => {
-                    const playerElement = document.createElement('div');
-                    playerElement.className = 'player team1';
-                    playerElement.style.position = 'absolute';
-                    playerElement.style.width = '20px';
-                    playerElement.style.height = '20px';
-                    playerElement.style.backgroundColor = team1.primaryColor;
-                    playerElement.style.border = `2px solid ${team1.secondaryColor}`;
-                    playerElement.style.borderRadius = '50%';
-                    playerElement.style.left = `${(index % 5) * 100 + 50}px`;
-                    playerElement.style.top = `${Math.floor(index / 5) * 100 + 50}px`;
-                    fieldElement.appendChild(playerElement);
-                });
-        
-                team2.players.forEach((player, index) => {
-                    const playerElement = document.createElement('div');
-                    playerElement.className = 'player team2';
-                    playerElement.style.position = 'absolute';
-                    playerElement.style.width = '20px';
-                    playerElement.style.height = '20px';
-                    playerElement.style.backgroundColor = team2.primaryColor;
-                    playerElement.style.border = `2px solid ${team2.secondaryColor}`;
-                    playerElement.style.borderRadius = '50%';
-                    playerElement.style.left = `${(index % 5) * 100 + 350}px`;
-                    playerElement.style.top = `${Math.floor(index / 5) * 100 + 50}px`;
-                    fieldElement.appendChild(playerElement);
-                });
-        
-                // Add ball
-                const ball = document.createElement('div');
-                ball.id = 'ball';
-                ball.style.position = 'absolute';
-                ball.style.width = '15px';
-                ball.style.height = '15px';
-                ball.style.backgroundColor = 'white';
-                ball.style.borderRadius = '50%';
-                ball.style.left = '292.5px'; // Center of the field
-                ball.style.top = '192.5px'; // Center of the field
-                fieldElement.appendChild(ball);
-        
-                field.appendChild(fieldElement);
-            }
-        
-            function updateField(team1, team2) {
-                // Update player positions and ball position based on game logic
-                // This is a placeholder for the actual logic to move players and ball
-                const ball = document.getElementById('ball');
-                ball.style.left = `${Math.random() * 570 + 15}px`; // Random position within field bounds
-                ball.style.top = `${Math.random() * 370 + 15}px`; // Random position within field bounds
-        
-                // Update player positions (this is a placeholder for actual logic)
-                const team1Players = document.querySelectorAll('.player.team1');
-                team1Players.forEach(player => {
-                    player.style.left = `${Math.random() * 570 + 15}px`;
-                    player.style.top = `${Math.random() * 370 + 15}px`;
-                });
-        
-                const team2Players = document.querySelectorAll('.player.team2');
-                team2Players.forEach(player => {
-                    player.style.left = `${Math.random() * 570 + 15}px`;
-                    player.style.top = `${Math.random() * 370 + 15}px`;
-                });
-            }
-        
-            function announceGoal(player, team, opponentTeam) {
-                const goalAnnouncement = document.createElement('p');
-                goalAnnouncement.innerHTML = `<strong>Goal by ${player.name} from ${team.teamName}!</strong>`;
-                ticker.appendChild(goalAnnouncement);
-                ticker.scrollTop = ticker.scrollHeight;
-        
-                // Flash scoreboard
-                const scoreboard = document.getElementById('scoreboard');
-                scoreboard.classList.add('flash');
-                setTimeout(() => {
-                    scoreboard.classList.remove('flash');
-                }, 1000);
-        
-                // Add goal scorer under scoreboard
-                let goalScorers = document.getElementById('goalScorers');
-                if (!goalScorers) {
-                    goalScorers = document.createElement('div');
-                    goalScorers.id = 'goalScorers';
-                    document.body.insertBefore(goalScorers, ticker);
-                }
-                const scorer = document.createElement('p');
-                scorer.textContent = `${player.name} (${team.teamName})`;
-                goalScorers.appendChild(scorer);
-        
-                // Continue the game with additional commentary
-                setTimeout(() => {
-                    const restartAnnouncement = document.createElement('p');
-                    restartAnnouncement.textContent = `The referee sets the game in motion again, after that solid goal from ${player.name}.`;
-                    ticker.appendChild(restartAnnouncement);
-                    ticker.scrollTop = ticker.scrollHeight;
-        
-                    let additionalCommentary;
-                    if (team1Score === team2Score) {
-                        additionalCommentary = "That equalises the score!";
-                    } else if (team1Score > team2Score) {
-                        additionalCommentary = `${opponentTeam.teamName} has some catching up to do.`;
-                    } else {
-                        additionalCommentary = `${team.teamName} takes the lead!`;
-                    }
-        
-                    const commentary = document.createElement('p');
-                    commentary.textContent = additionalCommentary;
-                    ticker.appendChild(commentary);
-                    ticker.scrollTop = ticker.scrollHeight;
-                }, 3000);
-            }
+        } else if (event < 0.5) {
+            // Regular game event
+            const player1 = getRandomPlayer('team1');
+            const player2 = getRandomPlayer('team2');
+            addCommentary(getRandomPhrase('pass', { player1: player1.name, player2: player2.nickname, team1: team1.teamName }));
+        } else if (event < 0.7) {
+            // Tackle event
+            const player1 = getRandomPlayer('team1');
+            const player2 = getRandomPlayer('team2');
+            addCommentary(getRandomPhrase('tackle', { player1: player1.name, player2: player2.nickname, team1: team1.teamName }));
+        } else {
+            // General event
+            addCommentary(getRandomPhrase('general', {}));
+        }
+    }
+
+    function getRandomPlayer(team, onPitch = true, notOnPitch = false) {
+        const players = teams[team].players;
+        const eligiblePlayers = players.filter((player, index) => {
+            const isOnPitch = index < 11;
+            if (onPitch && isOnPitch) return true;
+            if (notOnPitch && !isOnPitch) return true;
+            return false;
         });
-        
+        return eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
+    }
+
+    function handleFoul(player1, player2) {
+        const team1Name = team1.teamName;
+        const team2Name = team2.teamName;
+        const player1Key = `${player1.name}-${team1Name}`;
+        const player2Key = `${player2.name}-${team2Name}`;
+
+        if (!yellowCards[player1Key]) yellowCards[player1Key] = 0;
+        if (!yellowCards[player2Key]) yellowCards[player2Key] = 0;
+
+        const foulPlayer = Math.random() < 0.5 ? player1 : player2;
+        const foulTeam = foulPlayer === player1 ? team1Name : team2Name;
+        const foulPlayerKey = foulPlayer === player1 ? player1Key : player2Key;
+
+        yellowCards[foulPlayerKey]++;
+        if (yellowCards[foulPlayerKey] === 2) {
+            redCards[foulPlayerKey] = true;
+            addCommentary(`<b>${getRandomPhrase('redCard', { player: foulPlayer.name, team: foulTeam })}</b>`);
+            addGoalScorer(foulPlayer, '🟨🟨');
+        } else {
+            addCommentary(getRandomPhrase('yellowCard', { player: foulPlayer.name, team: foulTeam }));
+        }
+    }
+
+    function handleSubstitution(team, playerOut, playerIn) {
+        substitutions[team]++;
+        addCommentary(getRandomPhrase('substitution', { playerOut: playerOut.name, playerIn: playerIn.name, team: teams[team].teamName }));
+    }
+
+    function getRandomPlayer(team, onPitch = true, notOnPitch = false) {
+        const players = teams[team].players;
+        const eligiblePlayers = players.filter((player, index) => {
+            const isOnPitch = index < 11;
+            if (onPitch && isOnPitch) return true;
+            if (notOnPitch && !isOnPitch) return true;
+            return false;
+        });
+        return eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
+    }
+
+    function updateScoreboard() {
+        scoreboard.textContent = `${score.team1} - ${score.team2}`;
+        scoreboard.classList.add('flash');
+        setTimeout(() => scoreboard.classList.remove('flash'), 1000);
+    }
+
+    function addGoalScorer(player, card = '') {
+        const p = document.createElement('p');
+        p.textContent = `${player.name} (${player.nickname}) - ${player.position} ${card}`;
+        goalScorers.appendChild(p);
+    }
+
+    function addCommentary(text) {
+        const p = document.createElement('p');
+        p.innerHTML = text;
+        ticker.appendChild(p);
+        ticker.scrollTop = ticker.scrollHeight;
+    }
+
+    function formatTime(minutes) {
+        const min = Math.floor(minutes);
+        const sec = Math.floor((minutes - min) * 60);
+        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+});
