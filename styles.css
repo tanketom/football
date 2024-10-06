@@ -20,7 +20,7 @@ main {
     padding: 20px;
 }
 
-#field-section, #ticker-section, #highlights-section {
+#field-section, #scoreboard-section, #highlights-section {
     background-color: white;
     border: 1px solid #ccc;
     padding: 10px;
@@ -28,14 +28,6 @@ main {
 }
 
 #field-section {
-    width: 25%;
-}
-
-#ticker-section {
-    width: 50%;
-}
-
-#highlights-section {
     width: 25%;
 }
 
@@ -62,26 +54,23 @@ main {
     border-radius: 50%;
 }
 
-#goalScorers-section, #ticker-section {
-    width: 100%;
+#scoreboard-section {
+    width: 50%;
+    text-align: center;
+}
+
+#scoreboard {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
     margin-bottom: 20px;
 }
 
-#goalScorers-section h2, #ticker-section h2 {
-    margin-bottom: 10px;
+.team-name {
+    font-size: 20px;
     color: #0044cc;
-}
-
-#goalScorers {
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    height: 100px;
-    overflow-y: auto;
-}
-
-#goalScorers p {
-    margin: 5px 0;
 }
 
 #ticker {
@@ -94,6 +83,22 @@ main {
 }
 
 #ticker p {
+    margin: 5px 0;
+}
+
+#highlights-section {
+    width: 25%;
+}
+
+#highlights {
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 400px;
+    overflow-y: auto;
+}
+
+#highlights p {
     margin: 5px 0;
 }
 

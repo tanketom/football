@@ -11,31 +11,20 @@
         <h1>Football Game Simulator</h1>
     </header>
     <main>
-        <section id="scoreboard-section">
-            <div id="scoreboard"></div>
-            <div id="clock">00:00</div>
-        </section>
-        <section id="controls">
-            <div>
-                <label for="team1">Select Team 1:</label>
-                <select id="team1"></select>
-            </div>
-            <div>
-                <label for="team2">Select Team 2:</label>
-                <select id="team2"></select>
-            </div>
-            <button id="startButton">Start!</button>
-        </section>
         <section id="field-section">
             <div id="field"></div>
+        </section>
+        <section id="scoreboard-section">
+            <div id="scoreboard">
+                <div id="team1-name" class="team-name">Team 1</div>
+                <div id="score">0 - 0</div>
+                <div id="team2-name" class="team-name">Team 2</div>
+            </div>
+            <div id="ticker"></div>
         </section>
         <section id="highlights-section">
             <h2>Highlights</h2>
             <div id="highlights"></div>
-        </section>
-        <section id="ticker-section">
-            <h2>Live Commentary</h2>
-            <div id="ticker"></div>
         </section>
     </main>
     <script src="script.js"></script>
