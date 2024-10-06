@@ -197,6 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ticker.innerHTML += `<p>${homePlayer.name} (Home) vs ${awayPlayer.name} (Away)</p>`;
 
+        // Check for yellow/red card
+        const foul = checkForFoul(homePlayer, awayPlayer);
+        if (foul) {
+            handleFoul(foul);
+        }
+
         return homeScore > awayScore ? 'home' : 'away';
     }
 
@@ -235,16 +241,55 @@ document.addEventListener('DOMContentLoaded', () => {
         ticker.innerHTML += `<p>${team === 'home' ? homeTeam.teamName : awayTeam.teamName} moves the ball to (${ballPosition.row}, ${ballPosition.col})</p>`;
     }
 
-    // Update the scoreboard
-    function updateScoreboard() {
-        scoreboard.innerHTML = `${homeScore} - ${awayScore}`;
-        scoreboard.classList.add('flash');
-        setTimeout(() => scoreboard.classList.remove('flash'), 500);
-    }
-
-    // Load teams on page load
-    loadTeams();
-
-    // Start the game when both teams are selected
-    document.getElementById('startButton').addEventListener('click', startGame);
-});
+        // Check for foul
+        function checkForFoul(homePlayer, awayPlayer) {
+            const foulChance = Math.random();
+            const homeFoul = homePlayer.strength > 80 && homePlayer.intelligence < 60 && foulChance < 0.1;
+            const awayFoul = awayPlayer.strength > 80 && awayPlayer.intelligence < 60 && foulChance < 0.1;
+    
+            if (homeFoul) {
+                return { team: 'home', player: homePlayer };
+            } else if (awayFoul) {
+                return { team: 'away', player: awayPlayer };
+            }
+            return null;
+        }
+    
+        // Handle foul
+        function handleFoul(foul) {
+            const cardChance = Math.random();
+            const player = foul.player;
+            const team = foul.team === 'home' ? homeTeam : awayTeam;
+    
+            if (cardChance < 0.5) {
+                player.yellowCards = (player.yellowCards || 0) + 1;
+                ticker.innerHTML += `<p>Yellow card for ${player.name} (${team.teamName})</p>`;
+                if (player.yellowCards === 2) {
+                    sendOffPlayer(player, team);
+                }
+            } else {
+                ticker.innerHTML += `<p>Red card for ${player.name} (${team.teamName})</p>`;
+                sendOffPlayer(player, team);
+            }
+        }
+    
+        // Send off player
+        function sendOffPlayer(player, team) {
+            ticker.innerHTML += `<p>${player.name} (${team.teamName}) is sent off!</p>`;
+            team.players = team.players.filter(p => p !== player);
+        }
+    
+        // Update the scoreboard
+        function updateScoreboard() {
+            scoreboard.innerHTML = `${homeScore} - ${awayScore}`;
+            scoreboard.classList.add('flash');
+            setTimeout(() => scoreboard.classList.remove('flash'), 500);
+        }
+    
+        // Load teams on page load
+        loadTeams();
+    
+        // Start the game when both teams are selected
+        document.getElementById('startButton').addEventListener('click', startGame);
+    });
+    
