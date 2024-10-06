@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of team JSON files
     const teams = [
-        '/JSON/brackenford_united.json',
-        '/JSON/elderglen_fc.json'
+        'JSON/brackenford_united.json',
+        'JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if the ball is at the goal
         if ((team === team1 && ballPosition.x === 8 && ballPosition.y === 3) ||
             (team === team2 && ballPosition.x === 0 && ballPosition.y === 3)) {
-            if (Math.random() < 0.3) { // 30% chance of scoring
+            if (Math.random() < 0.25) { // 25% chance of scoring
                 scoreGoal(team);
             } else {
                 addTickerMessage(`The shot is saved by ${team === team1 ? team2.players.name : team1.players.name}!`);
