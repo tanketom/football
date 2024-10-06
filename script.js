@@ -5,35 +5,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const startButton = document.getElementById('startButton');
     const ticker = document.getElementById('ticker');
 
-    let teams = {};
+    const teams = {};
 
-    // Load teams from JSON files
-    fetch('teams.json')
-        .then(response => response.json())
-        .then(data => {
-            teams = data;
-            populateTeamSelects();
-        });
+    // Populate team selects with team names
+    const teamNames = ['Brackenford United', 'Elderglen FC']; // Add more team names as needed
+    teamNames.forEach(teamName => {
+        const option1 = document.createElement('option');
+        option1.value = teamName;
+        option1.textContent = teamName;
+        team1Select.appendChild(option1);
 
-    function populateTeamSelects() {
-        for (const teamName in teams) {
-            const option1 = document.createElement('option');
-            option1.value = teamName;
-            option1.textContent = teamName;
-            team1Select.appendChild(option1);
-
-            const option2 = document.createElement('option');
-            option2.value = teamName;
-            option2.textContent = teamName;
-            team2Select.appendChild(option2);
-        }
-    }
+        const option2 = document.createElement('option');
+        option2.value = teamName;
+        option2.textContent = teamName;
+        team2Select.appendChild(option2);
+    });
 
     startButton.addEventListener('click', () => {
-        const team1 = teams[team1Select.value];
-        const team2 = teams[team2Select.value];
-        startGame(team1, team2);
+        const team1Name = team1Select.value;
+        const team2Name = team2Select.value;
+        loadTeam(team1Name, team1 => {
+            loadTeam(team2Name, team2 => {
+                displayTeamDetails(team1, team2);
+                startGame(team1, team2);
+            });
+        });
     });
+
+    function loadTeam(teamName, callback) {
+        fetch(`JSON/${teamName.toLowerCase().replace(/ /g, '_')}.json`)
+            .then(response => response.json())
+            .then(data => {
+                teams[teamName] = data;
+                callback(data);
+            });
+    }
+
+    function displayTeamDetails(team1, team2) {
+        const team1Details = document.createElement('div');
+        team1Details.innerHTML = `<h2>${team1.teamName}</h2><p>Manager: ${team1.manager}</p><p>${team1.history}</p>`;
+        document.body.insertBefore(team1Details, ticker);
+
+        const team2Details = document.createElement('div');
+        team2Details.innerHTML = `<h2>${team2.teamName}</h2><p>Manager: ${team2.manager}</p><p>${team2.history}</p>`;
+        document.body.insertBefore(team2Details, ticker);
+    }
 
     function startGame(team1, team2) {
         ticker.innerHTML = '';
@@ -61,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const player2Score = player2.strength + player2.dexterity + diceRoll;
 
         if (player1Score > player2Score) {
-            return `${player1.name} from Team 1 outmaneuvers ${player2.name} from Team 2 and advances the ball!`;
+            return `${player1.name} from ${team1.teamName} outmaneuvers ${player2.name} from ${team2.teamName} and advances the ball!`;
         } else {
-            return `${player2.name} from Team 2 intercepts the ball from ${player1.name} from Team 1!`;
+            return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName}!`;
         }
     }
 

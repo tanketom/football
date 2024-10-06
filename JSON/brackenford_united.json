@@ -1,0 +1,25 @@
+{
+    "teamName": "Brackenford United",
+    "nickname": "The Bracken Warriors",
+    "manager": "Arthur Green",
+    "history": "Brackenford United was established in 1895. Known for its resilience and community spirit, the team has a storied history of overcoming challenges and achieving success. The club has a loyal fan base and a reputation for developing young talent.",
+    "players": [
+        {"name": "John Smith", "nickname": "Johnny", "position": "Goalkeeper", "strength": 80, "dexterity": 75, "constitution": 70, "intelligence": 65, "wisdom": 60, "charisma": 55},
+        {"name": "Michael Brown", "nickname": "Mike", "position": "Defender", "strength": 78, "dexterity": 72, "constitution": 68, "intelligence": 64, "wisdom": 62, "charisma": 58},
+        {"name": "David Johnson", "nickname": "Dave", "position": "Defender", "strength": 82, "dexterity": 77, "constitution": 73, "intelligence": 69, "wisdom": 66, "charisma": 61},
+        {"name": "James Williams", "nickname": "Jim", "position": "Midfielder", "strength": 79, "dexterity": 74, "constitution": 71, "intelligence": 67, "wisdom": 63, "charisma": 59},
+        {"name": "Robert Jones", "nickname": "Rob", "position": "Midfielder", "strength": 81, "dexterity": 76, "constitution": 72, "intelligence": 68, "wisdom": 65, "charisma": 60},
+        {"name": "William Taylor", "nickname": "Will", "position": "Midfielder", "strength": 77, "dexterity": 73, "constitution": 69, "intelligence": 66, "wisdom": 64, "charisma": 57},
+        {"name": "Thomas White", "nickname": "Tom", "position": "Forward", "strength": 83, "dexterity": 78, "constitution": 74, "intelligence": 70, "wisdom": 67, "charisma": 62},
+        {"name": "Charles Harris", "nickname": "Charlie", "position": "Forward", "strength": 80, "dexterity": 75, "constitution": 70, "intelligence": 65, "wisdom": 60, "charisma": 55},
+        {"name": "George Martin", "nickname": "Georgie", "position": "Forward", "strength": 78, "dexterity": 72, "constitution": 68, "intelligence": 64, "wisdom": 62, "charisma": 58},
+        {"name": "Joseph Thompson", "nickname": "Joe", "position": "Defender", "strength": 82, "dexterity": 77, "constitution": 73, "intelligence": 69, "wisdom": 66, "charisma": 61},
+        {"name": "Henry Moore", "nickname": "Hank", "position": "Midfielder", "strength": 79, "dexterity": 74, "constitution": 71, "intelligence": 67, "wisdom": 63, "charisma": 59},
+        {"name": "Lars Eriksson", "nickname": "Lars", "position": "Goalkeeper", "strength": 80, "dexterity": 75, "constitution": 70, "intelligence": 65, "wisdom": 60, "charisma": 55},
+        {"name": "Hans Müller", "nickname": "Hans", "position": "Defender", "strength": 78, "dexterity": 72, "constitution": 68, "intelligence": 64, "wisdom": 62, "charisma": 58},
+        {"name": "Ivan Petrov", "nickname": "Ivan", "position": "Midfielder", "strength": 82, "dexterity": 77, "constitution": 73, "intelligence": 69, "wisdom": 66, "charisma": 61},
+        {"name": "Kwame Nkrumah", "nickname": "Kwame", "position": "Forward", "strength": 79, "dexterity": 74, "constitution": 71, "intelligence": 67, "wisdom": 63, "charisma": 59},
+        {"name": "Ali Hassan", "nickname": "Ali", "position": "Midfielder", "strength": 81, "dexterity": 76, "constitution": 72, "intelligence": 68, "wisdom": 65, "charisma": 60},
+        {"name": "Hiroshi Tanaka", "nickname": "Hiro", "position": "Defender", "strength": 77, "dexterity": 73, "constitution": 69, "intelligence": 66, "wisdom": 64, "charisma": 57}
+    ]
+}
