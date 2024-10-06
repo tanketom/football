@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of team JSON files
     const teams = [
-        'JSON/brackenford_united.json',
-        'JSON/elderglen_fc.json'
+        '/JSON/brackenford_united.json',
+        '/JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
@@ -186,19 +186,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to move the ball towards the goal
     const moveBallTowardsGoal = (team) => {
-        if (team === team1) {
-            if (ballPosition.x < 8) ballPosition.x++;
-        } else {
-            if (ballPosition.x > 0) ballPosition.x--;
+        const directions = [
+            { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 1, y: -1 }, // Forward directions
+            { x: 0, y: 1 }, { x: 0, y: -1 }, // Up and down
+            { x: -1, y: 0 } // Backward direction
+        ];
+
+        const preferredDirections = team === team1 ? directions : directions.map(d => ({ x: -d.x, y: d.y }));
+
+        for (const direction of preferredDirections) {
+            const newX = ballPosition.x + direction.x;
+            const newY = ballPosition.y + direction.y;
+
+            if (newX >= 0 && newX < 9 && newY >= 0 && newY < 7) {
+                ballPosition = { x: newX, y: newY };
+                break;
+            }
         }
 
         // Check if the ball is at the goal
         if ((team === team1 && ballPosition.x === 8 && ballPosition.y === 3) ||
             (team === team2 && ballPosition.x === 0 && ballPosition.y === 3)) {
-            if (Math.random() < 0.3) { // 30% chance of scoring
+            if (Math.random() < 0.2) { // 20% chance of scoring
                 scoreGoal(team);
             } else {
                 addTickerMessage(`The shot is saved by ${team === team1 ? team2.players.name : team1.players.name}!`);
+                kickBallFromGoal(team === team1 ? team2 : team1);
             }
         }
     };
@@ -228,6 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ballPosition = { x: 4, y: 3 };
         updateBallPosition();
         updateScoreboard();
+    };
+
+    // Function to kick the ball from the goal
+    const kickBallFromGoal = (team) => {
+        const goalkeeper = team.players.find(player => player.position === 'Goalkeeper');
+        const targetPlayer = team.players[Math.floor(Math.random() * team.players.length)];
+        ballPosition = { x: team === team1 ? 4 : 4, y: Math.floor(Math.random() * 7) };
+        addTickerMessage(`${goalkeeper.name} kicks the ball to ${targetPlayer.name} on the opposing half.`);
+        updateBallPosition();
     };
 
     // Function to update the scoreboard
