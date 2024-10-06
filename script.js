@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         homeScore = 0;
         awayScore = 0;
         updateScoreboard();
-        ticker.innerHTML = '';
+        ticker.innerHTML = '<p>The referee blows his whistle, starting the game!</p>';
         gameInterval = setInterval(simulateMinute, 1000);
     }
 
@@ -155,9 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         currentMinute++;
-        ticker.innerHTML += `<p>${currentMinute}': Ball is at (${ballPosition.row}, ${ballPosition.col})</p>`;
-
-        // Simulate a duel and move the ball
         const duelResult = simulateDuel();
         if (duelResult === 'home') {
             moveBallTowardsGoal('home');
@@ -225,71 +222,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Move the ball towards the goal
     function moveBallTowardsGoal(team) {
-        if (team === 'home') {
-            if (ballPosition.col > 0) {
-                ballPosition.col--;
-            } else {
-                ballPosition.row = Math.max(0, ballPosition.row - 1);
-            }
+        const direction = team === 'home' ? -1 : 1;
+        if (ballPosition.col + direction >= 0 && ballPosition.col + direction <= 4) {
+            ballPosition.col += direction;
         } else {
-            if (ballPosition.col < 4) {
-                ballPosition.col++;
-            } else {
-                ballPosition.row = Math.min(4, ballPosition.row + 1);
-            }
+            ballPosition.row = Math.max(0, Math.min(4, ballPosition.row + (Math.random() > 0.5 ? 1 : -1)));
         }
         ticker.innerHTML += `<p>${team === 'home' ? homeTeam.teamName : awayTeam.teamName} moves the ball to (${ballPosition.row}, ${ballPosition.col})</p>`;
     }
 
-        // Check for foul
-        function checkForFoul(homePlayer, awayPlayer) {
-            const foulChance = Math.random();
-            const homeFoul = homePlayer.strength > 80 && homePlayer.intelligence < 60 && foulChance < 0.1;
-            const awayFoul = awayPlayer.strength > 80 && awayPlayer.intelligence < 60 && foulChance < 0.1;
-    
-            if (homeFoul) {
-                return { team: 'home', player: homePlayer };
-            } else if (awayFoul) {
-                return { team: 'away', player: awayPlayer };
-            }
-            return null;
+    // Check for foul
+    function checkForFoul(homePlayer, awayPlayer) {
+        const foulChance = Math.random();
+        const homeFoul = homePlayer.strength > 80 && homePlayer.intelligence < 60 && foulChance < 0.1;
+        const awayFoul = awayPlayer.strength > 80 && awayPlayer.intelligence < 60 && foulChance < 0.1;
+
+        if (homeFoul) {
+            return { team: 'home', player: homePlayer };
+        } else if (awayFoul) {
+            return { team: 'away', player: awayPlayer };
         }
-    
-        // Handle foul
-        function handleFoul(foul) {
-            const cardChance = Math.random();
-            const player = foul.player;
-            const team = foul.team === 'home' ? homeTeam : awayTeam;
-    
-            if (cardChance < 0.5) {
-                player.yellowCards = (player.yellowCards || 0) + 1;
-                ticker.innerHTML += `<p>Yellow card for ${player.name} (${team.teamName})</p>`;
-                if (player.yellowCards === 2) {
-                    sendOffPlayer(player, team);
-                }
-            } else {
-                ticker.innerHTML += `<p>Red card for ${player.name} (${team.teamName})</p>`;
+        return null;
+    }
+
+    // Handle foul
+    function handleFoul(foul) {
+        const cardChance = Math.random();
+        const player = foul.player;
+        const team = foul.team === 'home' ? homeTeam : awayTeam;
+
+        if (cardChance < 0.5) {
+            player.yellowCards = (player.yellowCards || 0) + 1;
+            ticker.innerHTML += `<p>Yellow card for ${player.name} (${team.teamName})</p>`;
+            if (player.yellowCards === 2) {
                 sendOffPlayer(player, team);
             }
+        } else {
+            ticker.innerHTML += `<p>Red card for ${player.name} (${team.teamName})</p>`;
+            sendOffPlayer(player, team);
         }
-    
-        // Send off player
-        function sendOffPlayer(player, team) {
-            ticker.innerHTML += `<p>${player.name} (${team.teamName}) is sent off!</p>`;
-            team.players = team.players.filter(p => p !== player);
-        }
-    
-        // Update the scoreboard
-        function updateScoreboard() {
-            scoreboard.innerHTML = `${homeScore} - ${awayScore}`;
-            scoreboard.classList.add('flash');
-            setTimeout(() => scoreboard.classList.remove('flash'), 500);
-        }
-    
-        // Load teams on page load
-        loadTeams();
-    
-        // Start the game when both teams are selected
-        document.getElementById('startButton').addEventListener('click', startGame);
-    });
-    
+    }
+
+    // Send off player
+    function sendOffPlayer(player, team) {
+        ticker.innerHTML += `<p>${player.name} (${team.teamName}) is sent off!</p>`;
+        team.players = team.players.filter(p => p !== player);
+    }
+
+    // Update the scoreboard
+    function updateScoreboard() {
+        scoreboard.innerHTML = `${homeScore} - ${awayScore}`;
+        scoreboard.classList.add('flash');
+        setTimeout(() => scoreboard.classList.remove('flash'), 500);
+    }
+
+    // Load teams on page load
+    loadTeams();
+
+    // Start the game when both teams are selected
+    document.getElementById('startButton').addEventListener('click', startGame);
+});
