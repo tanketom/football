@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameInterval;
     let homeTeam, awayTeam;
 
-    const teamFiles = ['teams/brackenford_united.json', 'teams/elderglen_fc.json'];
+    const teamFiles = ['JSON/brackenford_united.json', 'JSON/elderglen_fc.json'];
 
     const formations = {
         "4-4-2": {
