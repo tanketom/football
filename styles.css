@@ -102,11 +102,23 @@ main {
     margin: 5px 0;
 }
 
-.flash {
-    animation: flash 1s;
+footer {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background-color: #0044cc;
+    color: white;
 }
 
-@keyframes flash {
-    0% { background-color: yellow; }
-    100% { background-color: transparent; }
+footer div {
+    margin: 0 10px;
+}
+
+footer label {
+    margin-right: 10px;
+}
+
+footer select {
+    padding: 5px;
+    font-size: 16px;
 }
