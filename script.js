@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of team JSON files
     const teams = [
-        'JSON/brackenford_united.json',
-        'JSON/elderglen_fc.json'
+        '/JSON/brackenford_united.json',
+        '/JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameTime = 0;
     let gameInterval;
     let substitutions = { team1: 3, team2: 3 };
+    let firstHalf = true;
+    let startingTeam = 1; // 1 for team1, 2 for team2
 
     // Function to fetch and populate team data
     const loadTeams = async () => {
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to create the grid
     const createGrid = () => {
+        field.style.transform = firstHalf ? 'rotate(90deg)' : 'rotate(270deg)';
         for (let y = 0; y < 7; y++) {
             for (let x = 0; x < 9; x++) {
                 const cell = document.createElement('div');
@@ -80,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const strengthRoll = Math.floor(Math.random() * player1.strength);
         const intelligenceRoll = Math.floor(Math.random() * player1.intelligence);
 
-        if (strengthRoll > 75 && intelligenceRoll < 35) {
+        if (strengthRoll > 90 && intelligenceRoll < 30) {
             if (Math.random() > 0.5) {
                 addTickerMessage(`🟥: ${player1.name} is sent off for a harsh tackle!`);
                 addHighlightMessage(`🟥: ${player1.name} sent off at ${gameTime} min`);
@@ -127,9 +130,12 @@ document.addEventListener('DOMContentLoaded', () => {
         score = { team1: 0, team2: 0 };
         ballPosition = { x: 4, y: 3 }; // Reset ball position to center
         substitutions = { team1: 3, team2: 3 };
+        firstHalf = true;
+        startingTeam = 1; // Team 1 starts the first half
 
         updateBallPosition();
         updateScoreboard();
+        createGrid();
 
         gameInterval = setInterval(simulateMinute, 1000); // Simulate each minute
     };
@@ -176,6 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(gameInterval);
             setTimeout(() => {
                 addTickerMessage(`The second half begins!`);
+                firstHalf = false;
+                ballPosition = { x: 4, y: 3 }; // Reset ball position to center
+                startingTeam = 2; // Team 2 starts the second half
+                createGrid();
                 gameInterval = setInterval(simulateMinute, 1000);
             }, 3000); // 3 seconds break for half time
         } else if (gameTime === 90) {
@@ -207,12 +217,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if the ball is at the goal
         if ((team === team1 && ballPosition.x === 8 && ballPosition.y === 3) ||
             (team === team2 && ballPosition.x === 0 && ballPosition.y === 3)) {
-            if (Math.random() < 0.2) { // 20% chance of scoring
+            if (Math.random() < 0.3) { // 30% chance of scoring
                 scoreGoal(team);
             } else {
                 addTickerMessage(`The shot is saved by ${team === team1 ? team2.players.name : team1.players.name}!`);
                 kickBallFromGoal(team === team1 ? team2 : team1);
             }
+        } else if (ballPosition.y === 0 || ballPosition.y === 6) {
+            // Ball goes out of bounds on the sides
+            addTickerMessage(`The ball goes out of bounds!`);
+            freeThrow(team === team1 ? team2 : team1);
+        } else if (ballPosition.x === 0 || ballPosition.x === 8) {
+            // Ball goes out of bounds on the ends
+            addTickerMessage(`The ball goes out of bounds!`);
+            cornerKick(team === team1 ? team2 : team1);
         }
     };
 
@@ -249,6 +267,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetPlayer = team.players[Math.floor(Math.random() * team.players.length)];
         ballPosition = { x: team === team1 ? 4 : 4, y: Math.floor(Math.random() * 7) };
         addTickerMessage(`${goalkeeper.name} kicks the ball to ${targetPlayer.name} on the opposing half.`);
+        updateBallPosition();
+    };
+
+    // Function to handle free throws
+    const freeThrow = (team) => {
+        const targetPlayer = team.players[Math.floor(Math.random() * team.players.length)];
+        ballPosition = { x: team === team1 ? ballPosition.x + 2 : ballPosition.x - 2, y: ballPosition.y };
+        addTickerMessage(`${targetPlayer.name} takes a free throw.`);
+        updateBallPosition();
+    };
+
+    // Function to handle corner kicks
+    const cornerKick = (team) => {
+        const targetPlayer = team.players[Math.floor(Math.random() * team.players.length)];
+        ballPosition = { x: team === team1 ? 7 : 1, y: Math.floor(Math.random() * 7) };
+        addTickerMessage(`${targetPlayer.name} takes a corner kick.`);
         updateBallPosition();
     };
 
