@@ -74,23 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return phrase;
     }
 
+    // List of JSON files in the /JSON folder
+    const jsonFiles = [
+        'brackenford_united.json',
+        'elderglen_fc.json'
+        // Add more JSON files here
+    ];
+
     // Load all team data from the JSON folder
     fetchTeams();
 
     function fetchTeams() {
-        fetch('JSON/')
-            .then(response => response.json())
-            .then(files => {
-                files.forEach(file => {
-                    fetch(`JSON/${file}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            teams[data.teamName] = data;
-                            populateTeamSelect(team1Select, data.teamName);
-                            populateTeamSelect(team2Select, data.teamName);
-                        });
+        jsonFiles.forEach(file => {
+            fetch(`JSON/${file}`)
+                .then(response => response.json())
+                .then(data => {
+                    teams[data.teamName] = data;
+                    populateTeamSelect(team1Select, data.teamName);
+                    populateTeamSelect(team2Select, data.teamName);
                 });
-            });
+        });
     }
 
     function populateTeamSelect(selectElement, teamName) {
@@ -177,17 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function getRandomPlayer(team, onPitch = true, notOnPitch = false) {
-        const players = teams[team].players;
-        const eligiblePlayers = players.filter((player, index) => {
-            const isOnPitch = index < 11;
-            if (onPitch && isOnPitch) return true;
-            if (notOnPitch && !isOnPitch) return true;
-            return false;
-        });
-        return eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
-    }
-
     function handleFoul(player1, player2) {
         const team1Name = team1.teamName;
         const team2Name = team2.teamName;
@@ -252,4 +244,3 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
     }
 });
-
