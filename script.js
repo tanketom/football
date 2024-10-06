@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to create the grid
     const createGrid = () => {
         for (let y = 0; y < 7; y++) {
-            for (let x = 0; x < 9; x++) {
+            for (let x = 0; x < 9) {
                 const cell = document.createElement('div');
                 cell.classList.add('grid-cell');
                 cell.dataset.x = x;
@@ -195,106 +195,127 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if the ball is at the goal
         if ((team === team1 && ballPosition.x === 8 && ballPosition.y === 3) ||
             (team === team2 && ballPosition.x === 0 && ballPosition.y === 3)) {
-            scoreGoal(team);
+            if (Math.random() < 0.3) { // 30% chance of scoring
+                scoreGoal(team);
+            } else {
+                addTickerMessage(`The shot is saved by ${team === team1 ? team2.players.name : team1.players.name}!`);
+            }
         }
     };
 
-        // Function to handle scoring a goal
-        const scoreGoal = (team) => {
-            let scorer, goalkeeper;
+    // Function to handle scoring a goal
+    const scoreGoal = (team) => {
+        let scorer, goalkeeper;
+        if (team === team1) {
+            score.team1++;
+            scorer = team1.players.find(player => player.position === 'Forward');
+            goalkeeper = team2.players.find(player => player.position === 'Goalkeeper');
+            addTickerMessage(`<b>${scorer.name} hammers that past ${goalkeeper.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
+            addHighlightMessage(`⚽: ${scorer.name} scored at ${gameTime} min`);
+            addTickerMessage(`Up one there, ${team1.teamName}, now ${team2.teamName} must gather themselves.`);
+            addTickerMessage(getCelebrationMessage(scorer));
+        } else {
+            score.team2++;
+            scorer = team2.players.find(player => player.position === 'Forward');
+            goalkeeper = team1.players.find(player => player.position === 'Goalkeeper');
+            addTickerMessage(`<b>${scorer.name} hammers that past ${goalkeeper.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
+            addHighlightMessage(`⚽: ${scorer.name} scored at ${gameTime} min`);
+            addTickerMessage(`The equaliser is in and the score is now ${score.team1} - ${score.team2}! Back to the old drawing board, who will take this?`);
+            addTickerMessage(getCelebrationMessage(scorer));
+        }
+
+        // Reset ball position to center after a goal
+        ballPosition = { x: 4, y: 3 };
+        updateBallPosition();
+        updateScoreboard();
+    };
+
+    // Function to update the scoreboard
+    const updateScoreboard = () => {
+        scoreDisplay.textContent = `${score.team1} - ${score.team2}`;
+        scoreDisplay.classList.add('flash');
+        setTimeout(() => {
+            scoreDisplay.classList.remove('flash');
+        }, 1000);
+    };
+
+    // Function to update the match clock
+    const updateMatchClock = () => {
+        matchClock.textContent = `Time: ${gameTime} min`;
+    };
+
+    // Function to add messages to the ticker
+    const addTickerMessage = (message) => {
+        const p = document.createElement('p');
+        p.innerHTML = message;
+        ticker.appendChild(p);
+        ticker.scrollTop = ticker.scrollHeight; // Auto-scroll to the bottom
+    };
+
+    // Function to add messages to the highlights
+    const addHighlightMessage = (message) => {
+        const p = document.createElement('p');
+        p.innerHTML = message;
+        highlights.appendChild(p);
+    };
+
+    // Function to get a random message from a set of templates
+    const getRandomMessage = (type, player1, player2) => {
+        const messages = {
+            advance: [
+                `${player1.nickname} advances up the field, overtaking ${player2.name}`,
+                `${player1.nickname} skillfully dribbles past ${player2.name}`,
+                `${player1.nickname} makes a brilliant run, leaving ${player2.name} behind`
+            ],
+            intercept: [
+                `${player2.name} intercepts ${team1.teamName}'s ${player1.nickname} and ${team2.teamName} now has the ball`,
+                `${player2.name} cuts off the pass from ${player1.nickname}, possession goes to ${team2.teamName}`,
+                `${player2.name} steps in and takes the ball from ${player1.nickname}`
+            ]
+        };
+        const selectedMessages = messages[type];
+        return selectedMessages[Math.floor(Math.random() * selectedMessages.length)];
+    };
+
+    // Function to get a celebration message based on player's charisma
+    const getCelebrationMessage = (player) => {
+        const highCharismaMessages = [
+            `${player.name} celebrates with the crowd, they're loving it!`,
+            `${player.name} does a victory dance, the fans go wild!`,
+            `${player.name} pumps up the crowd, what a moment!`
+        ];
+        const lowCharismaMessages = [
+            `${player.name} celebrates quietly.`,
+            `${player.name} acknowledges the crowd.`,
+            `${player.name} gives a thumbs up to the fans.`
+        ];
+        return player.charisma > 70 ? highCharismaMessages[Math.floor(Math.random() * highCharismaMessages.length)] : lowCharismaMessages[Math.floor(Math.random() * lowCharismaMessages.length)];
+    };
+
+    // Function to substitute a player
+    const substitutePlayer = (team, player) => {
+        const substitute = team.players.find(p => p.teamNumber > 11 && !p.substituted);
+        if (substitute) {
+            substitute.substituted = true;
+            player.substituted = true;
+            addTickerMessage(`🔄: ${player.name} is substituted by ${substitute.name}`);
+            addHighlightMessage(`🔄: ${player.name} substituted by ${substitute.name} at ${gameTime} min`);
+            team.players = team.players.map(p => (p.teamNumber === player.teamNumber ? substitute : p));
             if (team === team1) {
-                score.team1++;
-                scorer = team1.players.find(player => player.position === 'Forward');
-                goalkeeper = team2.players.find(player => player.position === 'Goalkeeper');
-                addTickerMessage(`<b>${scorer.name} hammers that past ${goalkeeper.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
-                addHighlightMessage(`⚽: ${scorer.name} scored at ${gameTime} min`);
-                addTickerMessage(`Up one there, ${team1.teamName}, now ${team2.teamName} must gather themselves.`);
+                substitutions.team1--;
             } else {
-                score.team2++;
-                scorer = team2.players.find(player => player.position === 'Forward');
-                goalkeeper = team1.players.find(player => player.position === 'Goalkeeper');
-                addTickerMessage(`<b>${scorer.name} hammers that past ${goalkeeper.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
-                addHighlightMessage(`⚽: ${scorer.name} scored at ${gameTime} min`);
-                addTickerMessage(`The equaliser is in and the score is now ${score.team1} - ${score.team2}! Back to the old drawing board, who will take this?`);
+                substitutions.team2--;
             }
-    
-            // Reset ball position to center after a goal
-            ballPosition = { x: 4, y: 3 };
-            updateBallPosition();
-            updateScoreboard();
-        };
-    
-        // Function to update the scoreboard
-        const updateScoreboard = () => {
-            scoreDisplay.textContent = `${score.team1} - ${score.team2}`;
-            scoreDisplay.classList.add('flash');
-            setTimeout(() => {
-                scoreDisplay.classList.remove('flash');
-            }, 1000);
-        };
-    
-        // Function to update the match clock
-        const updateMatchClock = () => {
-            matchClock.textContent = `Time: ${gameTime} min`;
-        };
-    
-        // Function to add messages to the ticker
-        const addTickerMessage = (message) => {
-            const p = document.createElement('p');
-            p.innerHTML = message;
-            ticker.appendChild(p);
-            ticker.scrollTop = ticker.scrollHeight; // Auto-scroll to the bottom
-        };
-    
-        // Function to add messages to the highlights
-        const addHighlightMessage = (message) => {
-            const p = document.createElement('p');
-            p.innerHTML = message;
-            highlights.appendChild(p);
-        };
-    
-        // Function to get a random message from a set of templates
-        const getRandomMessage = (type, player1, player2) => {
-            const messages = {
-                advance: [
-                    `${player1.nickname} advances up the field, overtaking ${player2.name}`,
-                    `${player1.nickname} skillfully dribbles past ${player2.name}`,
-                    `${player1.nickname} makes a brilliant run, leaving ${player2.name} behind`
-                ],
-                intercept: [
-                    `${player2.name} intercepts ${team1.teamName}'s ${player1.nickname} and ${team2.teamName} now has the ball`,
-                    `${player2.name} cuts off the pass from ${player1.nickname}, possession goes to ${team2.teamName}`,
-                    `${player2.name} steps in and takes the ball from ${player1.nickname}`
-                ]
-            };
-            const selectedMessages = messages[type];
-            return selectedMessages[Math.floor(Math.random() * selectedMessages.length)];
-        };
-    
-        // Function to substitute a player
-        const substitutePlayer = (team, player) => {
-            const substitute = team.players.find(p => p.teamNumber > 11 && !p.substituted);
-            if (substitute) {
-                substitute.substituted = true;
-                player.substituted = true;
-                addTickerMessage(`🔄: ${player.name} is substituted by ${substitute.name}`);
-                addHighlightMessage(`🔄: ${player.name} substituted by ${substitute.name} at ${gameTime} min`);
-                team.players = team.players.map(p => (p.teamNumber === player.teamNumber ? substitute : p));
-                if (team === team1) {
-                    substitutions.team1--;
-                } else {
-                    substitutions.team2--;
-                }
-            }
-        };
-    
-        // Function to remove a player from the game
-        const removePlayer = (team, player) => {
-            team.players = team.players.filter(p => p.teamNumber !== player.teamNumber);
-        };
-    
-        loadTeams();
-        createGrid();
-    
-        startButton.addEventListener('click', startGame);
-    });    
+        }
+    };
+
+    // Function to remove a player from the game
+    const removePlayer = (team, player) => {
+        team.players = team.players.filter(p => p.teamNumber !== player.teamNumber);
+    };
+
+    loadTeams();
+    createGrid();
+
+    startButton.addEventListener('click', startGame);
+});
