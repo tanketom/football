@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of team JSON files
     const teams = [
-        '/JSON/brackenford_united.json',
-        '/JSON/elderglen_fc.json'
+        'JSON/brackenford_united.json',
+        'JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
