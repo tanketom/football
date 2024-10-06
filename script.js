@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of team JSON files
     const teams = [
-        '/JSON/brackenford_united.json',
-        '/JSON/elderglen_fc.json'
+        'JSON/brackenford_united.json',
+        'JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const strengthRoll = Math.floor(Math.random() * player1.strength);
         const intelligenceRoll = Math.floor(Math.random() * player1.intelligence);
 
-        if (strengthRoll > 90 && intelligenceRoll < 30) {
+        if (strengthRoll > 75 && intelligenceRoll < 35) {
             if (Math.random() > 0.5) {
                 addTickerMessage(`🟥: ${player1.name} is sent off for a harsh tackle!`);
                 addHighlightMessage(`🟥: ${player1.name} sent off at ${gameTime} min`);
