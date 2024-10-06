@@ -3,6 +3,8 @@
     "nickname": "The Elder Eagles",
     "manager": "Henry Black",
     "history": "Elderglen FC was founded in 1910. The team is celebrated for its strategic play and strong midfield. Over the years, Elderglen FC has built a reputation for its tactical prowess and has a history of thrilling matches.",
+    "primaryColor": "red",
+    "secondaryColor": "black",
     "players": [
         {"name": "Edward Clark", "nickname": "Eddie", "position": "Goalkeeper", "strength": 81, "dexterity": 76, "constitution": 72, "intelligence": 68, "wisdom": 65, "charisma": 60},
         {"name": "Richard Lewis", "nickname": "Rich", "position": "Defender", "strength": 77, "dexterity": 73, "constitution": 69, "intelligence": 66, "wisdom": 64, "charisma": 57},

@@ -28,3 +28,27 @@ body {
     font-size: 20px;
     margin-bottom: 20px;
 }
+
+#field {
+    position: relative;
+    width: 600px;
+    height: 400px;
+    background-color: green;
+    margin: 20px auto;
+    border: 1px solid black;
+}
+
+.player {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+#ball {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background-color: white;
+    border-radius: 50%;
+}

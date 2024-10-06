@@ -3,6 +3,8 @@
     "nickname": "The Bracken Warriors",
     "manager": "Arthur Green",
     "history": "Brackenford United was established in 1895. Known for its resilience and community spirit, the team has a storied history of overcoming challenges and achieving success. The club has a loyal fan base and a reputation for developing young talent.",
+    "primaryColor": "blue",
+    "secondaryColor": "white",
     "players": [
         {"name": "John Smith", "nickname": "Johnny", "position": "Goalkeeper", "strength": 80, "dexterity": 75, "constitution": 70, "intelligence": 65, "wisdom": 60, "charisma": 55},
         {"name": "Michael Brown", "nickname": "Mike", "position": "Defender", "strength": 78, "dexterity": 72, "constitution": 68, "intelligence": 64, "wisdom": 62, "charisma": 58},
