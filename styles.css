@@ -122,3 +122,16 @@ footer select {
     padding: 5px;
     font-size: 16px;
 }
+
+#startButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #0044cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#startButton:hover {
+    background-color: #003399;
+}

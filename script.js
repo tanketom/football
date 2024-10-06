@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMinute = 0;
     let gameInterval;
 
+    const teamFiles = ['teams/brackenford_united.json', 'teams/elderglen_fc.json'];
+
     const formations = {
         "4-4-2": {
             "Goalkeeper": [{ top: "80%", left: "50%" }],
@@ -53,21 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load teams from JSON files
     function loadTeams() {
-        fetch('teams/brackenford_united.json')
-            .then(response => response.json())
-            .then(data => {
-                teams.push(data);
-                populateTeamSelect(teamSelect1, data);
-                populateTeamSelect(teamSelect2, data);
-            });
-
-        fetch('teams/elderglen_fc.json')
-            .then(response => response.json())
-            .then(data => {
-                teams.push(data);
-                populateTeamSelect(teamSelect1, data);
-                populateTeamSelect(teamSelect2, data);
-            });
+        teamFiles.forEach(file => {
+            fetch(file)
+                .then(response => response.json())
+                .then(data => {
+                    teams.push(data);
+                    populateTeamSelect(teamSelect1, data);
+                    populateTeamSelect(teamSelect2, data);
+                });
+        });
     }
 
     // Populate team select dropdown
