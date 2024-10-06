@@ -111,7 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const player2Score = player2.strength + player2.dexterity + diceRoll;
         const fieldSides = ['left wing', 'right wing', 'center field', 'defensive third', 'attacking third'];
         const fieldSide = fieldSides[Math.floor(Math.random() * fieldSides.length)];
-
+        const actions = [
+            'dribbles past',
+            'outmaneuvers',
+            'dodges',
+            'bypasses',
+            'evades',
+            'sidesteps',
+            'outplays'
+        ];
+        const action = actions[Math.floor(Math.random() * actions.length)];
+    
         if (player1Score > player2Score) {
             if (Math.random() < 0.03) { // 3% chance to score
                 team1Score++;
@@ -119,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 announceGoal(player1, team1);
                 return `${player1.name} from ${team1.teamName} scores a goal from the ${fieldSide}!`;
             }
-            return `${player1.name} from ${team1.teamName} outmaneuvers ${player2.name} from ${team2.teamName} on the ${fieldSide} and advances the ball!`;
+            return `${player1.name} from ${team1.teamName} ${action} ${player2.name} from ${team2.teamName} on the ${fieldSide} and advances the ball!`;
         } else {
             if (Math.random() < 0.03) { // 3% chance to score
                 team2Score++;
@@ -130,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName} on the ${fieldSide}!`;
         }
     }
+    
 
     function updateTicker(decision) {
         const p = document.createElement('p');
@@ -238,22 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ticker.appendChild(goalAnnouncement);
         ticker.scrollTop = ticker.scrollHeight;
 
-        // Pause for 3 seconds
-        clearInterval(gameInterval);
-        setTimeout(() => {
-            gameInterval = setInterval(() => {
-                if (currentMinute >= 90) {
-                    clearInterval(gameInterval);
-                    return;
-                }
-                currentMinute++;
-                const decision = makeDecision(team1, team2);
-                updateTicker(decision);
-                updateClock();
-                updateField(team1, team2);
-            }, 1000);
-        }, 3000);
-
         // Flash scoreboard
         const scoreboard = document.getElementById('scoreboard');
         scoreboard.classList.add('flash');
@@ -262,11 +257,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
 
         // Add goal scorer under scoreboard
-        const goalScorers = document.getElementById('goalScorers');
+        let goalScorers = document.getElementById('goalScorers');
         if (!goalScorers) {
-            const goalScorersDiv = document.createElement('div');
-            goalScorersDiv.id = 'goalScorers';
-            document.body.insertBefore(goalScorersDiv, ticker);
+            goalScorers = document.createElement('div');
+            goalScorers.id = 'goalScorers';
+            document.body.insertBefore(goalScorers, ticker);
         }
         const scorer = document.createElement('p');
         scorer.textContent = `${player.name} (${team.teamName})`;
