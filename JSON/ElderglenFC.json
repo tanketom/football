@@ -1,0 +1,18 @@
+{
+    "teamName": "Elderglen FC",
+    "manager": "Henry Black",
+    "history": "Elderglen FC was founded in 1910. The team is celebrated for its strategic play and strong midfield. Over the years, Elderglen FC has built a reputation for its tactical prowess and has a history of thrilling matches.",
+    "players": [
+        {"name": "Edward Clark", "strength": 81, "dexterity": 76, "constitution": 72, "intelligence": 68, "wisdom": 65, "charisma": 60},
+        {"name": "Richard Lewis", "strength": 77, "dexterity": 73, "constitution": 69, "intelligence": 66, "wisdom": 64, "charisma": 57},
+        {"name": "Joseph Walker", "strength": 83, "dexterity": 78, "constitution": 74, "intelligence": 70, "wisdom": 67, "charisma": 62},
+        {"name": "Daniel Hall", "strength": 80, "dexterity": 75, "constitution": 70, "intelligence": 65, "wisdom": 60, "charisma": 55},
+        {"name": "Matthew Allen", "strength": 78, "dexterity": 72, "constitution": 68, "intelligence": 64, "wisdom": 62, "charisma": 58},
+        {"name": "Anthony Young", "strength": 82, "dexterity": 77, "constitution": 73, "intelligence": 69, "wisdom": 66, "charisma": 61},
+        {"name": "Mark King", "strength": 79, "dexterity": 74, "constitution": 71, "intelligence": 67, "wisdom": 63, "charisma": 59},
+        {"name": "Paul Wright", "strength": 81, "dexterity": 76, "constitution": 72, "intelligence": 68, "wisdom": 65, "charisma": 60},
+        {"name": "Steven Scott", "strength": 77, "dexterity": 73, "constitution": 69, "intelligence": 66, "wisdom": 64, "charisma": 57},
+        {"name": "Andrew Green", "strength": 83, "dexterity": 78, "constitution": 74, "intelligence": 70, "wisdom": 67, "charisma": 62},
+        {"name": "Joshua Adams", "strength": 80, "dexterity": 75, "constitution": 70, "intelligence": 65, "wisdom": 60, "charisma": 55}
+    ]
+}
