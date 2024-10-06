@@ -28,24 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     startButton.addEventListener('click', () => {
-        console.log('Start button clicked');
         const team1Name = team1Select.value;
         const team2Name = team2Select.value;
-        console.log('Team 1:', team1Name);
-        console.log('Team 2:', team2Name);
-    
+
         if (team1Name === team2Name) {
             alert('Please select two different teams.');
             return;
         }
-    
+
         loadTeam(team1Name, team1 => {
             loadTeam(team2Name, team2 => {
                 displayTeamDetails(team1, team2);
                 startGame(team1, team2);
             });
         });
-    });    
+    });
 
     function loadTeam(teamName, callback) {
         fetch(`JSON/${teamName.toLowerCase().replace(/ /g, '_')}.json`)
@@ -65,16 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayTeamDetails(team1, team2) {
-        const existingDetails = document.querySelectorAll('body > div:not(#ticker)');
+        const existingDetails = document.querySelectorAll('body > div:not(#ticker):not(#goalScorers):not(#field):not(#scoreboard-section):not(#controls):not(#field-section):not(#goalScorers-section):not(#ticker-section)');
         existingDetails.forEach(detail => detail.remove());
 
         const team1Details = document.createElement('div');
         team1Details.innerHTML = `<h2>${team1.teamName}</h2><p>Manager: ${team1.manager}</p><p>${team1.history}</p>`;
-        document.body.insertBefore(team1Details, ticker);
+        document.body.insertBefore(team1Details, document.getElementById('ticker-section'));
 
         const team2Details = document.createElement('div');
         team2Details.innerHTML = `<h2>${team2.teamName}</h2><p>Manager: ${team2.manager}</p><p>${team2.history}</p>`;
-        document.body.insertBefore(team2Details, ticker);
+        document.body.insertBefore(team2Details, document.getElementById('ticker-section'));
     }
 
     function startGame(team1, team2) {
