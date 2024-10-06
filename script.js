@@ -4,11 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const team2Select = document.getElementById('team2');
     const startButton = document.getElementById('startButton');
     const ticker = document.getElementById('ticker');
+    const clock = document.getElementById('clock');
 
     const teams = {};
     let team1Score = 0;
     let team2Score = 0;
     let currentMinute = 0;
+    let gameInterval;
 
     // Populate team selects with team names
     const teamNames = ['Brackenford United', 'Elderglen FC']; // Add more team names as needed
@@ -77,15 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
         team2Score = 0;
         currentMinute = 0;
         updateScoreboard(team1, team2);
+        updateClock();
 
-        let gameLog = [];
-        // Simulate game logic here
-        for (let i = 0; i < 90; i++) { // Simulate 90 minutes
+        gameInterval = setInterval(() => {
+            if (currentMinute >= 90) {
+                clearInterval(gameInterval);
+                return;
+            }
             currentMinute++;
             const decision = makeDecision(team1, team2);
-            gameLog.push(decision);
             updateTicker(decision);
-        }
+            updateClock();
+        }, 1000); // Update every second for real-time simulation
     }
 
     function makeDecision(team1, team2) {
@@ -101,21 +106,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function simulateDuel(player1, player2, diceRoll, team1, team2) {
         const player1Score = player1.strength + player1.dexterity + diceRoll;
         const player2Score = player2.strength + player2.dexterity + diceRoll;
+        const fieldSides = ['left wing', 'right wing', 'center field', 'defensive third', 'attacking third'];
+        const fieldSide = fieldSides[Math.floor(Math.random() * fieldSides.length)];
 
         if (player1Score > player2Score) {
-            if (Math.random() > 0.8) { // 20% chance to score
+            if (Math.random() < 0.03) { // 3% chance to score
                 team1Score++;
                 updateScoreboard(team1, team2);
-                return `${player1.name} from ${team1.teamName} scores a goal!`;
+                return `${player1.name} from ${team1.teamName} scores a goal from the ${fieldSide}!`;
             }
-            return `${player1.name} from ${team1.teamName} outmaneuvers ${player2.name} from ${team2.teamName} and advances the ball!`;
+            return `${player1.name} from ${team1.teamName} outmaneuvers ${player2.name} from ${team2.teamName} on the ${fieldSide} and advances the ball!`;
         } else {
-            if (Math.random() > 0.8) { // 20% chance to score
+            if (Math.random() < 0.03) { // 3% chance to score
                 team2Score++;
                 updateScoreboard(team1, team2);
-                return `${player2.name} from ${team2.teamName} scores a goal!`;
+                return `${player2.name} from ${team2.teamName} scores a goal from the ${fieldSide}!`;
             }
-            return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName}!`;
+            return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName} on the ${fieldSide}!`;
         }
     }
 
@@ -136,5 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.insertBefore(scoreboard, document.body.firstChild);
         }
         scoreboard.textContent = `${team1.teamName} ${team1Score} - ${team2Score} ${team2.teamName}`;
+    }
+
+    function updateClock() {
+        const minutes = Math.floor(currentMinute / 60);
+        const seconds = currentMinute % 60;
+        clock.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
 });
