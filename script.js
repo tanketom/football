@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Simulate game events
         const event = Math.random();
+        console.log(`Event: ${event}`); // Debugging log
         if (event < 0.2) {
             // Goal event
             if (attemptGoal()) {
@@ -220,16 +221,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attemptGoal() {
         const { x, y } = ballPosition;
-        const distanceToGoal = Math.abs(x - 2) + Math.abs(y - 2); // Manhattan distance to the center
         let goalProbability;
 
-        if (distanceToGoal === 0) {
-            goalProbability = 0.3; // Highest chance to score from the center
-        } else if (distanceToGoal === 1) {
+        if ((x === 0 && y === 2) || (x === 4 && y === 2)) {
+            goalProbability = 0.5; // Highest chance to score from the goal areas
+        } else if (x === 2 && y === 2) {
+            goalProbability = 0.3; // High chance to score from the center
+        } else if (Math.abs(x - 2) + Math.abs(y - 2) === 1) {
             goalProbability = 0.2;
-        } else if (distanceToGoal === 2) {
+        } else if (Math.abs(x - 2) + Math.abs(y - 2) === 2) {
             goalProbability = 0.15;
-        } else if (distanceToGoal === 3) {
+        } else if (Math.abs(x - 2) + Math.abs(y - 2) === 3) {
             goalProbability = 0.1;
         } else {
             goalProbability = 0.05; // Lowest chance to score from the farthest positions
