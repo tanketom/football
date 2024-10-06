@@ -1,284 +1,192 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const teamSelect1 = document.getElementById('team1');
-    const teamSelect2 = document.getElementById('team2');
-    const scoreboard = document.getElementById('score');
+    const team1Select = document.getElementById('team1');
+    const team2Select = document.getElementById('team2');
+    const field = document.getElementById('field');
+    const startButton = document.getElementById('startButton');
     const ticker = document.getElementById('ticker');
-    const teams = [];
-    let ballPosition = { row: 2, col: 2 };
-    let homeScore = 0;
-    let awayScore = 0;
-    let currentMinute = 0;
+
+    // List of team JSON files
+    const teams = [
+        '/JSON/brackenford_united.json',
+        '/JSON/elderglen_fc.json'
+        // Add more team JSON files here as needed
+    ];
+
+    let team1, team2;
+    let ballPosition = { x: 4, y: 3 }; // Start at center circle
+    let score = { team1: 0, team2: 0 };
+    let gameTime = 0;
     let gameInterval;
-    let homeTeam, awayTeam;
 
-    const teamFiles = ['JSON/brackenford_united.json', 'JSON/elderglen_fc.json'];
-
-    const formations = {
-        "4-4-2": {
-            "Goalkeeper": [{ top: "80%", left: "50%" }],
-            "Defender": [
-                { top: "60%", left: "20%" },
-                { top: "60%", left: "40%" },
-                { top: "60%", left: "60%" },
-                { top: "60%", left: "80%" }
-            ],
-            "Midfielder": [
-                { top: "40%", left: "20%" },
-                { top: "40%", left: "40%" },
-                { top: "40%", left: "60%" },
-                { top: "40%", left: "80%" }
-            ],
-            "Forward": [
-                { top: "20%", left: "40%" },
-                { top: "20%", left: "60%" }
-            ]
-        },
-        "4-3-3": {
-            "Goalkeeper": [{ top: "80%", left: "50%" }],
-            "Defender": [
-                { top: "60%", left: "20%" },
-                { top: "60%", left: "40%" },
-                { top: "60%", left: "60%" },
-                { top: "60%", left: "80%" }
-            ],
-            "Midfielder": [
-                { top: "40%", left: "30%" },
-                { top: "40%", left: "50%" },
-                { top: "40%", left: "70%" }
-            ],
-            "Forward": [
-                { top: "20%", left: "20%" },
-                { top: "20%", left: "50%" },
-                { top: "20%", left: "80%" }
-            ]
+    // Function to fetch and populate team data
+    const loadTeams = async () => {
+        try {
+            for (const teamFile of teams) {
+                const response = await fetch(teamFile);
+                const teamData = await response.json();
+                populateTeamSelect(team1Select, teamData);
+                populateTeamSelect(team2Select, teamData);
+            }
+        } catch (error) {
+            console.error('Error loading team data:', error);
         }
     };
 
-    // Load teams from JSON files
-    function loadTeams() {
-        teamFiles.forEach(file => {
-            fetch(file)
-                .then(response => response.json())
-                .then(data => {
-                    teams.push(data);
-                    populateTeamSelect(teamSelect1, data);
-                    populateTeamSelect(teamSelect2, data);
-                });
-        });
-    }
-
-    // Populate team select dropdown
-    function populateTeamSelect(selectElement, team) {
+    // Function to populate a select element with team data
+    const populateTeamSelect = (selectElement, teamData) => {
         const option = document.createElement('option');
-        option.value = team.teamName;
-        option.text = team.teamName;
-        selectElement.add(option);
-    }
+        option.value = teamData.teamName;
+        option.textContent = teamData.teamName;
+        selectElement.appendChild(option);
+    };
 
-    // Validate formation
-    function validateFormation(formation) {
-        const positions = formation.split('-');
-        const totalPlayers = positions.reduce((sum, num) => sum + parseInt(num), 0);
-        return totalPlayers === 10;
-    }
-
-    // Generate dynamic formation
-    function generateFormation(formation) {
-        const positions = formation.split('-');
-        const formationMap = {
-            "Goalkeeper": [{ top: "80%", left: "50%" }],
-            "Defender": [],
-            "Midfielder": [],
-            "Forward": []
-        };
-
-        const positionNames = ["Defender", "Midfielder", "Forward"];
-        let topOffsets = ["60%", "40%", "20%"];
-        let leftOffsets = ["20%", "40%", "60%", "80%"];
-
-        positions.forEach((count, index) => {
-            for (let i = 0; i < count; i++) {
-                formationMap[positionNames[index]].push({
-                    top: topOffsets[index],
-                    left: leftOffsets[i % leftOffsets.length]
-                });
+    // Function to create the grid
+    const createGrid = () => {
+        for (let y = 0; y < 7; y++) {
+            for (let x = 0; x < 9; x++) {
+                const cell = document.createElement('div');
+                cell.classList.add('grid-cell');
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                field.appendChild(cell);
             }
+        }
+    };
+
+    // Function to update the ball position on the field
+    const updateBallPosition = () => {
+        document.querySelectorAll('.grid-cell').forEach(cell => {
+            cell.innerHTML = '';
+        });
+        const ballCell = document.querySelector(`.grid-cell[data-x='${ballPosition.x}'][data-y='${ballPosition.y}']`);
+        const ball = document.createElement('div');
+        ball.id = 'ball';
+        ballCell.appendChild(ball);
+    };
+
+    // Function to simulate a duel between two players
+    const duel = (player1, player2) => {
+        const player1Score = rollDice(player1);
+        const player2Score = rollDice(player2);
+
+        return player1Score > player2Score ? player1 : player2;
+    };
+
+    // Function to roll dice based on player attributes
+    const rollDice = (player) => {
+        const attributes = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+        let score = 0;
+
+        attributes.forEach(attr => {
+            score += Math.floor(Math.random() * player[attr]);
         });
 
-        return formationMap;
-    }
+        return score;
+    };
 
-    // Display team formation
-    function displayTeamFormation(team, containerId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        const formation = validateFormation(team.formation) ? generateFormation(team.formation) : formations["4-4-2"];
-        team.players.forEach(player => {
-            const playerDiv = document.createElement('div');
-            playerDiv.className = 'player';
-            playerDiv.innerText = `${player.name} (${player.nickname})`;
-            const position = formation[player.position].shift();
-            playerDiv.style.top = position.top;
-            playerDiv.style.left = position.left;
-            container.appendChild(playerDiv);
-        });
-    }
+    // Function to start the game
+    const startGame = async () => {
+        const team1Name = team1Select.value;
+        const team2Name = team2Select.value;
 
-    // Event listener for team selection
-    teamSelect1.addEventListener('change', () => {
-        homeTeam = teams.find(team => team.teamName === teamSelect1.value);
-        displayTeamFormation(homeTeam, 'field');
-    });
+        team1 = await fetchTeamData(team1Name);
+        team2 = await fetchTeamData(team2Name);
 
-    teamSelect2.addEventListener('change', () => {
-        awayTeam = teams.find(team => team.teamName === teamSelect2.value);
-        displayTeamFormation(awayTeam, 'field');
-    });
+        ticker.innerHTML = '';
+        addTickerMessage(`The referee blows her whistle, and the game is on!`);
 
-    // Simulate a football game
-    function startGame() {
-        currentMinute = 0;
-        ballPosition = { row: 2, col: 2 };
-        homeScore = 0;
-        awayScore = 0;
-        updateScoreboard();
-        ticker.innerHTML = '<p>The referee blows his whistle, starting the game!</p>';
-        gameInterval = setInterval(simulateMinute, 1000);
-    }
+        gameTime = 0;
+        score = { team1: 0, team2: 0 };
+        ballPosition = { x: 4, y: 3 }; // Reset ball position to center
 
-    // Simulate each minute of the game
-    function simulateMinute() {
-        if (currentMinute >= 90) {
+        updateBallPosition();
+
+        gameInterval = setInterval(simulateMinute, 1000); // Simulate each minute
+    };
+
+    // Function to fetch team data based on team name
+    const fetchTeamData = async (teamName) => {
+        const teamFile = teams.find(file => file.includes(teamName.toLowerCase().replace(' ', '_')));
+        const response = await fetch(teamFile);
+        return await response.json();
+    };
+
+    // Function to simulate each minute of the game
+    const simulateMinute = () => {
+        gameTime++;
+
+        // Simulate a duel between random players from each team
+        const player1 = team1.players[Math.floor(Math.random() * team1.players.length)];
+        const player2 = team2.players[Math.floor(Math.random() * team2.players.length)];
+        const winner = duel(player1, player2);
+
+        if (winner.teamNumber <= 11) {
+            // Team 1 wins the duel
+            addTickerMessage(`${player1.nickname} advances up the field, overtaking ${player2.name}`);
+            moveBallTowardsGoal(team1);
+        } else {
+            // Team 2 wins the duel
+            addTickerMessage(`${player2.name} intercepts ${team1.teamName}'s ${player1.nickname} and ${team2.teamName} now has the ball`);
+            moveBallTowardsGoal(team2);
+        }
+
+        updateBallPosition();
+
+        if (gameTime === 45) {
+            addTickerMessage(`The referee blows for half time, and ${team1.teamName} now has to think hard over for a few minutes to see if they can turn this around.`);
             clearInterval(gameInterval);
-            ticker.innerHTML += `<p>Full time! Final score: ${homeScore} - ${awayScore}</p>`;
-            return;
+            setTimeout(() => {
+                addTickerMessage(`The second half begins!`);
+                gameInterval = setInterval(simulateMinute, 1000);
+            }, 3000); // 3 seconds break for half time
+        } else if (gameTime === 90) {
+            addTickerMessage(`The referee blows the final whistle! The game ends with a score of ${score.team1} - ${score.team2}.`);
+            clearInterval(gameInterval);
         }
+    };
 
-        currentMinute++;
-        const duelResult = simulateDuel();
-        if (duelResult === 'home') {
-            moveBallTowardsGoal('home');
+    // Function to move the ball towards the goal
+    const moveBallTowardsGoal = (team) => {
+        if (team === team1) {
+            if (ballPosition.x < 8) ballPosition.x++;
         } else {
-            moveBallTowardsGoal('away');
+            if (ballPosition.x > 0) ballPosition.x--;
         }
 
-        // Check for goal
-        if (ballPosition.col === 0 || ballPosition.col === 4) {
-            const scoringTeam = ballPosition.col === 0 ? 'home' : 'away';
-            const goalkeeper = scoringTeam === 'home' ? getPlayerInCell(awayTeam, { row: 2, col: 0 }) : getPlayerInCell(homeTeam, { row: 2, col: 4 });
-            const goalScored = attemptGoal(goalkeeper);
-
-            if (goalScored) {
-                if (scoringTeam === 'home') {
-                    homeScore++;
-                    ticker.innerHTML += `<p>Goal for ${homeTeam.teamName}! Score: ${homeScore} - ${awayScore}</p>`;
-                } else {
-                    awayScore++;
-                    ticker.innerHTML += `<p>Goal for ${awayTeam.teamName}! Score: ${homeScore} - ${awayScore}</p>`;
-                }
-                updateScoreboard();
-                ballPosition = { row: 2, col: 2 };
-            } else {
-                ticker.innerHTML += `<p>Great save by the goalkeeper!</p>`;
-            }
+        // Check if the ball is at the goal
+        if ((team === team1 && ballPosition.x === 8 && ballPosition.y === 3) ||
+            (team === team2 && ballPosition.x === 0 && ballPosition.y === 3)) {
+            scoreGoal(team);
         }
-    }
+    };
 
-    // Simulate a duel based on player attributes
-    function simulateDuel() {
-        const homePlayer = getPlayerInCell(homeTeam, ballPosition);
-        const awayPlayer = getPlayerInCell(awayTeam, ballPosition);
-
-        const homeScore = calculatePlayerScore(homePlayer);
-        const awayScore = calculatePlayerScore(awayPlayer);
-
-        ticker.innerHTML += `<p>${homePlayer.name} (Home) vs ${awayPlayer.name} (Away)</p>`;
-
-        // Check for yellow/red card
-        const foul = checkForFoul(homePlayer, awayPlayer);
-        if (foul) {
-            handleFoul(foul);
-        }
-
-        return homeScore > awayScore ? 'home' : 'away';
-    }
-
-    // Get player in the current cell
-    function getPlayerInCell(team, position) {
-        return team.players[Math.floor(Math.random() * team.players.length)];
-    }
-
-    // Calculate player score based on attributes
-    function calculatePlayerScore(player) {
-        return player.strength + player.dexterity + player.intelligence;
-    }
-
-    // Attempt to score a goal considering the goalkeeper's attributes
-    function attemptGoal(goalkeeper) {
-        const goalkeeperScore = calculatePlayerScore(goalkeeper);
-        const goalChance = Math.random() * 100;
-        return goalChance > goalkeeperScore;
-    }
-
-    // Move the ball towards the goal
-    function moveBallTowardsGoal(team) {
-        const direction = team === 'home' ? -1 : 1;
-        if (ballPosition.col + direction >= 0 && ballPosition.col + direction <= 4) {
-            ballPosition.col += direction;
+    // Function to handle scoring a goal
+    const scoreGoal = (team) => {
+        if (team === team1) {
+            score.team1++;
+            addTickerMessage(`${team1.players.name} hammers that past the ${team2.players.name}, he stood no chance there.`);
+            addTickerMessage(`Up one there, ${team1.teamName}, now ${team2.teamName} must gather themselves.`);
         } else {
-            ballPosition.row = Math.max(0, Math.min(4, ballPosition.row + (Math.random() > 0.5 ? 1 : -1)));
+            score.team2++;
+            addTickerMessage(`${team2.players.name} hammers that past the ${team1.players.name}, he stood no chance there.`);
+            addTickerMessage(`The equaliser is in and the score is now ${score.team1} - ${score.team2}! Back to the old drawing board, who will take this?`);
         }
-        ticker.innerHTML += `<p>${team === 'home' ? homeTeam.teamName : awayTeam.teamName} moves the ball to (${ballPosition.row}, ${ballPosition.col})</p>`;
-    }
 
-    // Check for foul
-    function checkForFoul(homePlayer, awayPlayer) {
-        const foulChance = Math.random();
-        const homeFoul = homePlayer.strength > 80 && homePlayer.intelligence < 60 && foulChance < 0.1;
-        const awayFoul = awayPlayer.strength > 80 && awayPlayer.intelligence < 60 && foulChance < 0.1;
+        // Reset ball position to center after a goal
+        ballPosition = { x: 4, y: 3 };
+        updateBallPosition();
+    };
 
-        if (homeFoul) {
-            return { team: 'home', player: homePlayer };
-        } else if (awayFoul) {
-            return { team: 'away', player: awayPlayer };
-        }
-        return null;
-    }
+    // Function to add messages to the ticker
+    const addTickerMessage = (message) => {
+        const p = document.createElement('p');
+        p.textContent = message;
+        ticker.appendChild(p);
+        ticker.scrollTop = ticker.scrollHeight; // Auto-scroll to the bottom
+    };
 
-    // Handle foul
-    function handleFoul(foul) {
-        const cardChance = Math.random();
-        const player = foul.player;
-        const team = foul.team === 'home' ? homeTeam : awayTeam;
-
-        if (cardChance < 0.5) {
-            player.yellowCards = (player.yellowCards || 0) + 1;
-            ticker.innerHTML += `<p>Yellow card for ${player.name} (${team.teamName})</p>`;
-            if (player.yellowCards === 2) {
-                sendOffPlayer(player, team);
-            }
-        } else {
-            ticker.innerHTML += `<p>Red card for ${player.name} (${team.teamName})</p>`;
-            sendOffPlayer(player, team);
-        }
-    }
-
-    // Send off player
-    function sendOffPlayer(player, team) {
-        ticker.innerHTML += `<p>${player.name} (${team.teamName}) is sent off!</p>`;
-        team.players = team.players.filter(p => p !== player);
-    }
-
-    // Update the scoreboard
-    function updateScoreboard() {
-        scoreboard.innerHTML = `${homeScore} - ${awayScore}`;
-        scoreboard.classList.add('flash');
-        setTimeout(() => scoreboard.classList.remove('flash'), 500);
-    }
-
-    // Load teams on page load
     loadTeams();
+    createGrid();
 
-    // Start the game when both teams are selected
-    document.getElementById('startButton').addEventListener('click', startGame);
+    startButton.addEventListener('click', startGame);
 });
