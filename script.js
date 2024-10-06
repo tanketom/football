@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ball.id = 'ball';
     field.appendChild(ball);
 
+    const scoreBoard = document.getElementById('scoreboard');
+    let score = { team1: 0, team2: 0 };
+
     // Function to fetch team data from JSON files
     async function fetchTeamData(teamFile) {
         const response = await fetch(`JSON/${teamFile}`);
@@ -23,8 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
             playerDiv.style.top = `${Math.random() * 380}px`;
             playerDiv.dataset.velocityX = (Math.random() - 0.5) * 2; // Random velocity
             playerDiv.dataset.velocityY = (Math.random() - 0.5) * 2; // Random velocity
+            playerDiv.dataset.name = player.name;
             playerDiv.title = `${player.name} (${player.position})`;
             field.appendChild(playerDiv);
+
+            // Add click event to shoot the ball
+            playerDiv.addEventListener('click', () => shootBall(playerDiv));
         });
     }
 
@@ -57,6 +64,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         requestAnimationFrame(updatePlayerPositions);
+    }
+
+    // Function to shoot the ball towards the goal
+    function shootBall(playerDiv) {
+        const ballX = parseFloat(ball.style.left);
+        const ballY = parseFloat(ball.style.top);
+        const playerX = parseFloat(playerDiv.style.left);
+        const playerY = parseFloat(playerDiv.style.top);
+
+        const deltaX = playerX - ballX;
+        const deltaY = playerY - ballY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const speed = 5; // Adjust speed as needed
+        const steps = distance / speed;
+        let step = 0;
+
+        function move() {
+            if (step < steps) {
+                ball.style.left = `${ballX + (deltaX / steps) * step}px`;
+                ball.style.top = `${ballY + (deltaY / steps) * step}px`;
+                step++;
+                requestAnimationFrame(move);
+            } else {
+                ball.style.left = `${playerX}px`;
+                ball.style.top = `${playerY}px`;
+                checkGoal(playerX, playerY);
+            }
+        }
+
+        move();
+    }
+
+    // Function to check if a goal is scored
+    function checkGoal(x, y) {
+        const goalX = 580; // Example goal position
+        const goalY = 200; // Example goal position
+        const goalWidth = 20;
+        const goalHeight = 100;
+
+        if (x >= goalX && x <= goalX + goalWidth && y >= goalY && y <= goalY + goalHeight) {
+            score.team1++; // Update score for team 1
+            updateScoreboard();
+        }
+    }
+
+    // Function to update the scoreboard
+    function updateScoreboard() {
+        scoreBoard.textContent = `Team 1: ${score.team1} - Team 2: ${score.team2}`;
     }
 
     // Load and place players for both teams
