@@ -121,12 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
             'outplays'
         ];
         const action = actions[Math.floor(Math.random() * actions.length)];
-    
+
         if (player1Score > player2Score) {
             if (Math.random() < 0.03) { // 3% chance to score
                 team1Score++;
                 updateScoreboard(team1, team2);
-                announceGoal(player1, team1);
+                announceGoal(player1, team1, team2);
                 return `${player1.name} from ${team1.teamName} scores a goal from the ${fieldSide}!`;
             }
             return `${player1.name} from ${team1.teamName} ${action} ${player2.name} from ${team2.teamName} on the ${fieldSide} and advances the ball!`;
@@ -134,13 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Math.random() < 0.03) { // 3% chance to score
                 team2Score++;
                 updateScoreboard(team1, team2);
-                announceGoal(player2, team2);
+                announceGoal(player2, team2, team1);
                 return `${player2.name} from ${team2.teamName} scores a goal from the ${fieldSide}!`;
             }
             return `${player2.name} from ${team2.teamName} intercepts the ball from ${player1.name} from ${team1.teamName} on the ${fieldSide}!`;
         }
     }
-    
 
     function updateTicker(decision) {
         const p = document.createElement('p');
@@ -243,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function announceGoal(player, team) {
+    function announceGoal(player, team, opponentTeam) {
         const goalAnnouncement = document.createElement('p');
         goalAnnouncement.innerHTML = `<strong>Goal by ${player.name} from ${team.teamName}!</strong>`;
         ticker.appendChild(goalAnnouncement);
@@ -266,5 +265,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const scorer = document.createElement('p');
         scorer.textContent = `${player.name} (${team.teamName})`;
         goalScorers.appendChild(scorer);
+
+        // Continue the game with additional commentary
+        setTimeout(() => {
+            const restartAnnouncement = document.createElement('p');
+            restartAnnouncement.textContent = `The referee sets the game in motion again, after that solid goal from ${player.name}.`;
+            ticker.appendChild(restartAnnouncement);
+            ticker.scrollTop = ticker.scrollHeight;
+
+            let additionalCommentary;
+            if (team1Score === team2Score) {
+                additionalCommentary = "That equalises the score!";
+            } else if (team1Score > team2Score) {
+                additionalCommentary = `${opponentTeam.teamName} has some catching up to do.`;
+            } else {
+                additionalCommentary = `${team.teamName} takes the lead!`;
+            }
+
+            const commentary = document.createElement('p');
+            commentary.textContent = additionalCommentary;
+            ticker.appendChild(commentary);
+            ticker.scrollTop = ticker.scrollHeight;
+        }, 3000);
     }
 });
