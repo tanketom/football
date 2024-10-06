@@ -9,11 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const matchClock = document.createElement('div');
     matchClock.id = 'matchClock';
     scoreboard.appendChild(matchClock);
+    const highlights = document.getElementById('highlights');
 
     // List of team JSON files
     const teams = [
-        'JSON/brackenford_united.json',
-        'JSON/elderglen_fc.json'
+        '/JSON/brackenford_united.json',
+        '/JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = { team1: 0, team2: 0 };
     let gameTime = 0;
     let gameInterval;
+    let substitutions = { team1: 3, team2: 3 };
 
     // Function to fetch and populate team data
     const loadTeams = async () => {
@@ -74,6 +76,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const player1Score = rollDice(player1);
         const player2Score = rollDice(player2);
 
+        // Check for yellow or red card
+        const strengthRoll = Math.floor(Math.random() * player1.strength);
+        const intelligenceRoll = Math.floor(Math.random() * player1.intelligence);
+
+        if (strengthRoll > 90 && intelligenceRoll < 30) {
+            if (Math.random() > 0.5) {
+                addTickerMessage(`🟥: ${player1.name} is sent off for a harsh tackle!`);
+                addHighlightMessage(`🟥: ${player1.name} sent off at ${gameTime} min`);
+                removePlayer(team1, player1);
+            } else {
+                addTickerMessage(`🟨: ${player1.name} receives a yellow card for a rough tackle.`);
+                addHighlightMessage(`🟨: ${player1.name} booked at ${gameTime} min`);
+                player1.yellowCards = (player1.yellowCards || 0) + 1;
+                if (player1.yellowCards === 2) {
+                    addTickerMessage(`🟨 🟨: ${player1.name} receives a second yellow and is sent off!`);
+                    addHighlightMessage(`🟨 🟨: ${player1.name} sent off at ${gameTime} min`);
+                    removePlayer(team1, player1);
+                }
+            }
+        }
+
         return player1Score > player2Score ? player1 : player2;
     };
 
@@ -103,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameTime = 0;
         score = { team1: 0, team2: 0 };
         ballPosition = { x: 4, y: 3 }; // Reset ball position to center
+        substitutions = { team1: 3, team2: 3 };
 
         updateBallPosition();
         updateScoreboard();
@@ -129,15 +153,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (winner.teamNumber <= 11) {
             // Team 1 wins the duel
-            addTickerMessage(`${player1.nickname} advances up the field, overtaking ${player2.name}`);
+            addTickerMessage(getRandomMessage('advance', player1, player2));
             moveBallTowardsGoal(team1);
         } else {
             // Team 2 wins the duel
-            addTickerMessage(`${player2.name} intercepts ${team1.teamName}'s ${player1.nickname} and ${team2.teamName} now has the ball`);
+            addTickerMessage(getRandomMessage('intercept', player2, player1));
             moveBallTowardsGoal(team2);
         }
 
         updateBallPosition();
+
+        // Check for player substitutions
+        if (player1.constitution < 50 && substitutions.team1 > 0) {
+            substitutePlayer(team1, player1);
+        }
+        if (player2.constitution < 50 && substitutions.team2 > 0) {
+            substitutePlayer(team2, player2);
+        }
 
         if (gameTime === 45) {
             addTickerMessage(`The referee blows for half time, and ${team1.teamName} now has to think hard over for a few minutes to see if they can turn this around.`);
@@ -172,10 +204,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (team === team1) {
             score.team1++;
             addTickerMessage(`<b>${team1.players.name} hammers that past the ${team2.players.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
+            addHighlightMessage(`⚽: ${team1.players.name} scored at ${gameTime} min`);
             addTickerMessage(`Up one there, ${team1.teamName}, now ${team2.teamName} must gather themselves.`);
         } else {
             score.team2++;
             addTickerMessage(`<b>${team2.players.name} hammers that past the ${team1.players.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
+            addHighlightMessage(`⚽: ${team2.players.name} scored at ${gameTime} min`);
             addTickerMessage(`The equaliser is in and the score is now ${score.team1} - ${score.team2}! Back to the old drawing board, who will take this?`);
         }
 
@@ -205,6 +239,53 @@ document.addEventListener('DOMContentLoaded', () => {
         p.innerHTML = message;
         ticker.appendChild(p);
         ticker.scrollTop = ticker.scrollHeight; // Auto-scroll to the bottom
+    };
+
+    // Function to add messages to the highlights
+    const addHighlightMessage = (message) => {
+        const p = document.createElement('p');
+        p.innerHTML = message;
+        highlights.appendChild(p);
+    };
+
+    // Function to get a random message from a set of templates
+    const getRandomMessage = (type, player1, player2) => {
+        const messages = {
+            advance: [
+                `${player1.nickname} advances up the field, overtaking ${player2.name}`,
+                `${player1.nickname} skillfully dribbles past ${player2.name}`,
+                `${player1.nickname} makes a brilliant run, leaving ${player2.name} behind`
+            ],
+            intercept: [
+                `${player2.name} intercepts ${team1.teamName}'s ${player1.nickname} and ${team2.teamName} now has the ball`,
+                `${player2.name} cuts off the pass from ${player1.nickname}, possession goes to ${team2.teamName}`,
+                `${player2.name} steps in and takes the ball from ${player1.nickname}`
+            ]
+        };
+        const selectedMessages = messages[type];
+        return selectedMessages[Math.floor(Math.random() * selectedMessages.length)];
+    };
+
+    // Function to substitute a player
+    const substitutePlayer = (team, player) => {
+        const substitute = team.players.find(p => p.teamNumber > 11 && !p.substituted);
+        if (substitute) {
+            substitute.substituted = true;
+            player.substituted = true;
+            addTickerMessage(`🔄: ${player.name} is substituted by ${substitute.name}`);
+            addHighlightMessage(`🔄: ${player.name} substituted by ${substitute.name} at ${gameTime} min`);
+            team.players = team.players.map(p => (p.teamNumber === player.teamNumber ? substitute : p));
+            if (team === team1) {
+                substitutions.team1--;
+            } else {
+                substitutions.team2--;
+            }
+        }
+    };
+
+    // Function to remove a player from the game
+    const removePlayer = (team, player) => {
+        team.players = team.players.filter(p => p.teamNumber !== player.teamNumber);
     };
 
     loadTeams();
