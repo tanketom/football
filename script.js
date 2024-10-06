@@ -28,21 +28,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     startButton.addEventListener('click', () => {
+        console.log('Start button clicked');
         const team1Name = team1Select.value;
         const team2Name = team2Select.value;
-
+        console.log('Team 1:', team1Name);
+        console.log('Team 2:', team2Name);
+    
         if (team1Name === team2Name) {
             alert('Please select two different teams.');
             return;
         }
-
+    
         loadTeam(team1Name, team1 => {
             loadTeam(team2Name, team2 => {
                 displayTeamDetails(team1, team2);
                 startGame(team1, team2);
             });
         });
-    });
+    });    
 
     function loadTeam(teamName, callback) {
         fetch(`JSON/${teamName.toLowerCase().replace(/ /g, '_')}.json`)
