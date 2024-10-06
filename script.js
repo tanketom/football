@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of team JSON files
     const teams = [
-        'JSON/brackenford_united.json',
-        'JSON/elderglen_fc.json'
+        '/JSON/brackenford_united.json',
+        '/JSON/elderglen_fc.json'
         // Add more team JSON files here as needed
     ];
 
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to create the grid
     const createGrid = () => {
         for (let y = 0; y < 7; y++) {
-            for (let x = 0; x < 9) {
+            for (let x = 0; x < 9; x++) {
                 const cell = document.createElement('div');
                 cell.classList.add('grid-cell');
                 cell.dataset.x = x;
