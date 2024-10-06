@@ -32,6 +32,10 @@ main {
 }
 
 #field {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 1px;
     position: relative;
     width: 100%;
     height: 400px;
@@ -39,19 +43,23 @@ main {
     border: 1px solid black;
 }
 
-.player {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+.grid-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: green;
+    color: white;
+    border: 1px solid black;
+    width: 50px;
+    height: 50px;
 }
 
 #ball {
-    position: absolute;
     width: 15px;
     height: 15px;
     background-color: white;
     border-radius: 50%;
+    margin: auto;
 }
 
 #scoreboard-section {
@@ -134,4 +142,14 @@ footer select {
 
 #startButton:hover {
     background-color: #003399;
+}
+
+.flash {
+    background-color: yellow;
+    transition: background-color 0.5s;
+}
+
+#matchClock {
+    font-size: 18px;
+    margin-top: 10px;
 }

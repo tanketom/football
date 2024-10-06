@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const field = document.getElementById('field');
     const startButton = document.getElementById('startButton');
     const ticker = document.getElementById('ticker');
+    const scoreboard = document.getElementById('scoreboard');
+    const scoreDisplay = document.getElementById('score');
+    const matchClock = document.createElement('div');
+    matchClock.id = 'matchClock';
+    scoreboard.appendChild(matchClock);
 
     // List of team JSON files
     const teams = [
@@ -100,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ballPosition = { x: 4, y: 3 }; // Reset ball position to center
 
         updateBallPosition();
+        updateScoreboard();
 
         gameInterval = setInterval(simulateMinute, 1000); // Simulate each minute
     };
@@ -114,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to simulate each minute of the game
     const simulateMinute = () => {
         gameTime++;
+        updateMatchClock();
 
         // Simulate a duel between random players from each team
         const player1 = team1.players[Math.floor(Math.random() * team1.players.length)];
@@ -164,23 +171,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreGoal = (team) => {
         if (team === team1) {
             score.team1++;
-            addTickerMessage(`${team1.players.name} hammers that past the ${team2.players.name}, he stood no chance there.`);
+            addTickerMessage(`<b>${team1.players.name} hammers that past the ${team2.players.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
             addTickerMessage(`Up one there, ${team1.teamName}, now ${team2.teamName} must gather themselves.`);
         } else {
             score.team2++;
-            addTickerMessage(`${team2.players.name} hammers that past the ${team1.players.name}, he stood no chance there.`);
+            addTickerMessage(`<b>${team2.players.name} hammers that past the ${team1.players.name}, he stood no chance there. The score is now ${score.team1} - ${score.team2}!</b>`);
             addTickerMessage(`The equaliser is in and the score is now ${score.team1} - ${score.team2}! Back to the old drawing board, who will take this?`);
         }
 
         // Reset ball position to center after a goal
         ballPosition = { x: 4, y: 3 };
         updateBallPosition();
+        updateScoreboard();
+    };
+
+    // Function to update the scoreboard
+    const updateScoreboard = () => {
+        scoreDisplay.textContent = `${score.team1} - ${score.team2}`;
+        scoreDisplay.classList.add('flash');
+        setTimeout(() => {
+            scoreDisplay.classList.remove('flash');
+        }, 1000);
+    };
+
+    // Function to update the match clock
+    const updateMatchClock = () => {
+        matchClock.textContent = `Time: ${gameTime} min`;
     };
 
     // Function to add messages to the ticker
     const addTickerMessage = (message) => {
         const p = document.createElement('p');
-        p.textContent = message;
+        p.innerHTML = message;
         ticker.appendChild(p);
         ticker.scrollTop = ticker.scrollHeight; // Auto-scroll to the bottom
     };
