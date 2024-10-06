@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let substitutions = { team1: 0, team2: 0 };
     let yellowCards = {};
     let redCards = {};
+    let ballPosition = { x: 2, y: 2 }; // Start in the middle of the grid
+    let ballPossession = ''; // 'team1' or 'team2'
 
     const commentaryPhrases = {
         start: [
@@ -114,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         resetGame();
+        ballPossession = Math.random() < 0.5 ? 'team1' : 'team2'; // Coin toss
         addCommentary(getRandomPhrase('start', { team1: team1.teamName, team2: team2.teamName }));
         gameInterval = setInterval(simulateMinute, 1000);
     }
@@ -124,6 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
         substitutions = { team1: 0, team2: 0 };
         yellowCards = {};
         redCards = {};
+        ballPosition = { x: 2, y: 2 }; // Reset to middle
+        ballPossession = ''; // Reset possession
         scoreboard.textContent = '0 - 0';
         clock.textContent = '00:00';
         goalScorers.innerHTML = '';
@@ -145,12 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const event = Math.random();
         if (event < 0.1) {
             // Goal event
-            const scoringTeam = Math.random() < 0.5 ? 'team1' : 'team2';
-            const scorer = getRandomPlayer(scoringTeam);
-            score[scoringTeam]++;
-            updateScoreboard();
-            addGoalScorer(scorer);
-            addCommentary(`<b>${getRandomPhrase('goal', { player: scorer.name, team: teams[scoringTeam].teamName, score: `${score.team1} - ${score.team2}` })}</b>`);
+            if (attemptGoal()) {
+                const scoringTeam = ballPossession;
+                const scorer = getRandomPlayer(scoringTeam);
+                score[scoringTeam]++;
+                updateScoreboard();
+                addGoalScorer(scorer);
+                addCommentary(`<b>${getRandomPhrase('goal', { player: scorer.name, team: teams[scoringTeam].teamName, score: `${score.team1} - ${score.team2}` })}</b>`);
+                resetBallPosition();
+            }
         } else if (event < 0.2) {
             // Foul event
             const player1 = getRandomPlayer('team1');
@@ -166,9 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (event < 0.5) {
             // Regular game event
-            const player1 = getRandomPlayer('team1');
-            const player2 = getRandomPlayer('team2');
-            addCommentary(getRandomPhrase('pass', { player1: player1.name, player2: player2.nickname, team1: team1.teamName }));
+            handleBallMovement();
         } else if (event < 0.7) {
             // Tackle event
             const player1 = getRandomPlayer('team1');
@@ -178,6 +184,40 @@ document.addEventListener('DOMContentLoaded', () => {
             // General event
             addCommentary(getRandomPhrase('general', {}));
         }
+    }
+
+    function handleBallMovement() {
+        const direction = Math.random();
+        if (direction < 0.25 && ballPosition.y > 0) {
+            ballPosition.y--; // Move up
+        } else if (direction < 0.5 && ballPosition.y < 4) {
+            ballPosition.y++; // Move down
+        } else if (direction < 0.75 && ballPosition.x > 0) {
+            ballPosition.x--; // Move left
+        } else if (ballPosition.x < 4) {
+            ballPosition.x++; // Move right
+        }
+        addCommentary(`The ball is now at position (${ballPosition.x}, ${ballPosition.y}).`);
+    }
+
+    function attemptGoal() {
+        const { x, y } = ballPosition;
+        const distanceToGoal = Math.abs(x - 2) + Math.abs(y - 2); // Manhattan distance to the center
+        let goalProbability;
+
+        if (distanceToGoal === 0) {
+            goalProbability = 0.3; // Highest chance to score from the center
+        } else if (distanceToGoal === 1) {
+            goalProbability = 0.2;
+        } else if (distanceToGoal === 2) {
+            goalProbability = 0.15;
+        } else if (distanceToGoal === 3) {
+            goalProbability = 0.1;
+        } else {
+            goalProbability = 0.05; // Lowest chance to score from the farthest positions
+        }
+
+        return Math.random() < goalProbability;
     }
 
     function handleFoul(player1, player2) {
@@ -242,5 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const min = Math.floor(minutes);
         const sec = Math.floor((minutes - min) * 60);
         return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function resetBallPosition() {
+        ballPosition = { x: 2, y: 2 }; // Reset to middle
+        ballPossession = Math.random() < 0.5 ? 'team1' : 'team2'; // Coin toss for possession
     }
 });
